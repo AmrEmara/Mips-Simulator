@@ -24,12 +24,54 @@ public class Assembler {
 		while(line != null){
 			
 			inst = line.split(" ")[0];
-			if(line.equalsIgnoreCase("add") || line.equalsIgnoreCase("sub") || line.equalsIgnoreCase("and") || line.equalsIgnoreCase("nor") || line.equalsIgnoreCase("slt") || line.equalsIgnoreCase("sltu")){
+			if(inst.equalsIgnoreCase("add") || inst.equalsIgnoreCase("sub") || inst.equalsIgnoreCase("and") || inst.equalsIgnoreCase("nor") || inst.equalsIgnoreCase("slt") || inst.equalsIgnoreCase("sltu")){
 				
 				inst = "000000";
 				operands = line.split(" ")[1];
+				inst += regNum(operands.split(",")[1])+regNum(operands.split(",")[2])+regNum(operands.split(",")[0])+"00000";
+				switch(line.split(" ")[0]){
+					case "add":
+					case "ADD":
+					case "Add":inst+="100000";break;
+					case "sub":
+					case "SUB":
+					case "Sub":inst+="100010";break;	
+					case "and":
+					case "AND":
+					case "And":inst+="100100";break;	
+					case "nor":
+					case "NOR":
+					case "Nor":inst+="100111";break;	
+					case "slt":
+					case "SLT":
+					case "Slt":inst+="101010";break;	
+					case "sltu":
+					case "SLTU":
+					case "Sltu":inst+="101001";break;	
+				}
 				
-			}	
+				
+				
+			}
+			else if(inst.equalsIgnoreCase("sll") || inst.equalsIgnoreCase("srl")){
+				
+				inst = "000000";
+				operands = line.split(" ")[1];
+				inst += "00000"+regNum(operands.split(",")[1])+regNum(operands.split(",")[0])+Integer.toBinaryString(Integer.parseInt(operands.split(",")[2]));
+				switch(line.split(" ")[0]){
+					case "sll":
+					case "SLL":
+					case "Sll":inst+="000000";break;
+					case "srl":
+					case "SRL":
+					case "Srl":inst+="000010";break;	
+				
+				}
+			}
+			else if(inst.equalsIgnoreCase("addi")){
+				
+				inst = "";
+			}
 				
 				
 		}
