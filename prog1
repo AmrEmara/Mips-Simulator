@@ -1,0 +1,8 @@
+0xAA
+bne $t1,$s7,-2
+jal 2
+sub $s1,$s2,$s3
+j 42
+addi $s2,$s3,-4
+lw $t0,8($s1)
+add $t3,$t4,$s5

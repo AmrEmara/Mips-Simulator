@@ -104,7 +104,7 @@ public class Assembler {
 			}
 			else if(inst.equalsIgnoreCase("beq") || inst.equalsIgnoreCase("bne")){
 				inst = regNum(operands.split(",")[0])+regNum(operands.split(",")[1])+toNBinaryString(Integer.parseInt(operands.split(",")[2]), 16);
-				switch(line.split(" ")[1]){
+				switch(line.split(" ")[0]){
 					case "beq":
 					case "BEQ":
 					case "Beq":inst = "000100"+inst;break;
@@ -215,7 +215,7 @@ public class Assembler {
 		String x = "prog1";
 		File file = new File(x);
 		Assembler a = new Assembler(file);
-		System.out.println(a.memory.get(a.pc+8));
+		System.out.println(a.memory.get(a.pc+4));
 	}
 		
 }
