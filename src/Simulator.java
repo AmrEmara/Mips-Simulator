@@ -34,7 +34,7 @@ public class Simulator {
 		else if (binary.startsWith("000010") || binary.startsWith("000011"))
 		// if J-format ,sends back the address.
 		{
-			toExecute.put("Address",binary.substring(26));
+			toExecute.put("Address",binary.substring(6));
 		}
 		else 
 		// if I-format sends back the value of reg,destination ,constant/adress.
