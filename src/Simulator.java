@@ -22,11 +22,11 @@ public class Simulator {
 			// funct = binary.substring(26);
 			
 			rs = binary.substring(6,10);
-			rt = binary.substring(16,20);
+			rt = binary.substring(11,15);
 			rs= registerFile.get(rs); 
 			rt= registerFile.get(rt);	
 			toExecute.put("First Source", rs);
-			toExecute.put("Destination Register", binary.substring(11,15));
+			toExecute.put("Destination Register", binary.substring(16,20));
 			toExecute.put("Second Source", rt);
 			toExecute.put("Shift Amount", binary.substring(21,25));
 			toExecute.put("Function", binary.substring(26));	
