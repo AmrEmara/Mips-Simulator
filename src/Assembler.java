@@ -6,33 +6,37 @@ import java.io.IOException;
 import java.io.Reader;
 import java.util.HashMap;
 
+import javax.imageio.stream.MemoryCacheImageInputStream;
+
 
 public class Assembler {
-	HashMap<String, String> memory;
-	String pc ;
+	HashMap<Integer, String> memory;
+	int pc ;
 
 	public Assembler(File file) throws IOException{
 		//key for memory is the address of instruction/data
-		memory = new HashMap<String, String>();
+		memory = new HashMap<Integer, String>();
 		FileReader x = new FileReader(file);
 		BufferedReader br = new BufferedReader(x);
-		pc = br.readLine();
+		pc = Integer.parseInt(br.readLine().substring(2),16);
+		
 		String line = br.readLine();
 		String inst;
 		String operands;
-		String instAddress = pc;
+		int instAddress = pc;
 		while(line != null){
 			
 			inst = line.split(" ")[0];
+			operands = line.split(" ")[1];
+
 			if(inst.equalsIgnoreCase("add") || inst.equalsIgnoreCase("sub") || inst.equalsIgnoreCase("and") || inst.equalsIgnoreCase("nor") || inst.equalsIgnoreCase("slt") || inst.equalsIgnoreCase("sltu")){
 				
 				inst = "000000";
-				operands = line.split(" ")[1];
 				inst += regNum(operands.split(",")[1])+regNum(operands.split(",")[2])+regNum(operands.split(",")[0])+"00000";
 				switch(line.split(" ")[0]){
 					case "add":
 					case "ADD":
-					case "Add":inst+="100000";break;
+					case "Add":inst+="100000";System.out.println("ana hena");break;
 					case "sub":
 					case "SUB":
 					case "Sub":inst+="100010";break;	
@@ -56,7 +60,6 @@ public class Assembler {
 			else if(inst.equalsIgnoreCase("sll") || inst.equalsIgnoreCase("srl")){
 				
 				inst = "000000";
-				operands = line.split(" ")[1];
 				inst += "00000"+regNum(operands.split(",")[1])+regNum(operands.split(",")[0])+Integer.toBinaryString(Integer.parseInt(operands.split(",")[2]));
 				switch(line.split(" ")[0]){
 					case "sll":
@@ -70,13 +73,67 @@ public class Assembler {
 			}
 			else if(inst.equalsIgnoreCase("addi")){
 				
-				inst = "";
+				inst = "001000"+regNum(operands.split(",")[1])+regNum(operands.split(",")[0])+toNBinaryString(Integer.parseInt(operands.split(",")[2]),16);
+			}
+			else if(inst.equalsIgnoreCase("lw") || inst.equalsIgnoreCase("lb") || inst.equalsIgnoreCase("lbu") || inst.equalsIgnoreCase("sw") || inst.equalsIgnoreCase("sb") || inst.equalsIgnoreCase("lui")){
+				
+				String[] offsetRs = loadStoreOA(operands.split(",")[1]);
+				inst = regNum(offsetRs[1])+regNum(operands.split(",")[0])+toNBinaryString(Integer.parseInt(offsetRs[0]), 16);
+				switch(line.split(" ")[0]){
+					case "lw":
+					case "LW":
+					case "Lw":inst = "100011"+inst;break;
+					case "lb":
+					case "LB":
+					case "Lb":inst = "100000"+inst;break;
+					case "lbu":
+					case "LBU":
+					case "Lbu":inst = "100100"+inst;break;
+					case "sw":
+					case "SW":
+					case "Sw":inst = "101011"+inst;break;
+					case "sb":
+					case "SB":
+					case "Sb":inst = "101000"+inst;break;
+					case "lui":
+					case "LUI":
+					case "Lui":	inst = "001111"+inst;break;
+						
+						
+				}
+			}
+			else if(inst.equalsIgnoreCase("beq") || inst.equalsIgnoreCase("bne")){
+				inst = regNum(operands.split(",")[0])+regNum(operands.split(",")[1])+toNBinaryString(Integer.parseInt(operands.split(",")[2]), 16);
+				switch(line.split(" ")[1]){
+					case "beq":
+					case "BEQ":
+					case "Beq":inst = "000100"+inst;break;
+					case "bne":
+					case "BNE":
+					case "Bne":inst = "000101"+inst;break;	
+				}
+				
+			}
+			else if(inst.equalsIgnoreCase("j") || inst.equalsIgnoreCase("jal")){
+				inst = toNBinaryString(Integer.parseInt(operands), 26);
+				switch(line.split(" ")[0]){
+				case "j":
+				case "J": inst = "000010"+inst;break;
+				case "jal":
+				case "JAL":
+				case "Jal":	inst = "000011"+inst;break;
+				}
+			}
+			else if(inst.equalsIgnoreCase("jr")){
+				inst = "000000"+regNum(operands)+"00000"+"00000"+"00000"+"001000";
 			}
 				
-				
+			memory.put(instAddress, inst);
+			instAddress +=4;
+			line = br.readLine();
 		}
 		
-			
+		br.close();	
 			
 	}
 	public static String regNum(String reg){
@@ -115,8 +172,50 @@ public class Assembler {
 		}
 		return reg;
 		
+	}
+	public static String toNBinaryString(int num , int n){
+		String binary;
+		if(num<0){
+			binary = Integer.toBinaryString(num).substring(16);
+			
+		}
+		else{
+			
+			binary = Integer.toBinaryString(num);
+			while(binary.length()<n){
+				binary = "0"+binary;
+			}
+		}
+		return binary;
 		
 		
+	}
+	public static String[] loadStoreOA(String string){
+		String off="";
+		String reg="";
+		String tmp;
+		int i = 0;
+		while(string.charAt(i) != '('){
+			
+			off +=string.charAt(i);
+			i++;
+		}
+		tmp = string.substring(i+1);
+		int j = 0;
+		while(tmp.charAt(j)!=')'){
+			reg +=tmp.charAt(j);
+			j++;
+		}
+		String[] output = {off,reg};
+		return output;
+		
+		
+	}
+	public static void main(String[]args) throws IOException{
+		String x = "prog1";
+		File file = new File(x);
+		Assembler a = new Assembler(file);
+		System.out.println(a.memory.get(a.pc+8));
 	}
 		
 }
