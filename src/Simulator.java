@@ -119,6 +119,17 @@ public class Simulator {
 		return result;
 	}
 
+	public static String binarySetLessThan(String arg1, String arg2) {
+		String result = "";
+		int a = binaryToDecimal(arg1);
+		int b = binaryToDecimal(arg2);
+		if (a > b) {
+			return "1";
+		}
+		return "0";
+
+	}
+
 	public static String binaryOr(String a, String b) {
 		String result = "";
 		if (a.length() != b.length()) {
@@ -135,6 +146,78 @@ public class Simulator {
 			result += c;
 		}
 		return result;
+	}
+
+	public static String binaryNot(String a) {
+		String result = "";
+		for (int i = 0; i < a.length(); i++) {
+			if (a.charAt(i) == '1') {
+				result += "0";
+			} else {
+				result += "1";
+			}
+		}
+		return result;
+	}
+
+	public static String signExtendor(String s) {
+		if (s.length() == 32) {
+			return s;
+		}
+		char c = s.charAt(0);
+		while (s.length() < 32) {
+			s = c + s;
+		}
+		return s;
+
+	}
+
+	public static String binaryShiftLeft(String s, int shiftAmount) {
+		String res = signExtendor(s);
+		String out = "";
+		if (shiftAmount > 32) {
+			System.out.println("invalid shift amount, greater than 32 !");
+		}
+		String[] shiftString = new String[32];
+		for (int i = 0; i < 32; i++) {
+			shiftString[i] = res.charAt(i) + "";
+		}
+		for (int i = shiftAmount; i > 0; i--) {
+			String start = shiftString[0];
+			for (int j = 0; j < 31; j++) {
+				shiftString[j] = shiftString[j + 1];
+			}
+			shiftString[31] = start;
+		}
+		for (int i = 0; i < 32; i++) {
+			out += shiftString[i];
+		}
+
+		return out;
+	}
+
+	public static String binaryShiftRight(String s, int shiftAmount) {
+		String res = signExtendor(s);
+		String out = "";
+		if (shiftAmount > 32) {
+			System.out.println("invalid shift amount, greater than 32 !");
+		}
+		String[] shiftString = new String[32];
+		for (int i = 0; i < 32; i++) {
+			shiftString[i] = res.charAt(i) + "";
+		}
+		for (int i = shiftAmount; i > 0; i--) {
+			String start = shiftString[31];
+			for (int j = 31; j >= 1; j--) {
+				shiftString[j] = shiftString[j - 1];
+			}
+			shiftString[0] = start;
+		}
+		for (int i = 0; i < 32; i++) {
+			out += shiftString[i];
+		}
+
+		return out;
 	}
 
 	public static HashMap Execute(HashMap in) {
@@ -157,6 +240,31 @@ public class Simulator {
 			String out = operation(ALUfunc, (String) in.get("firstSource"),
 					(String) in.get("secondSource"));
 			registerFile.put((String) in.get("destinationRegister"), out);
+		} else {
+			if (controlSignals.equals("011110000")) { // then its a load
+														// instruction
+				String out = ""; // used to store value loaded from memory
+				String address = binaryAdd((String) in.get("sourceRegister"),
+						(String) in.get("address")); // add offset to base
+														// address
+				out = (String) registerFile.get(address);
+				String loader = (String) in.get("destinationRegister");
+				in.put(loader, out);
+
+			} else {
+				if (controlSignals.equals("X1X001000")) { // save word
+															// instruction
+
+				} else {
+					if (controlSignals.equals("X0X000101")) { // branch equal
+																// instruction
+
+					} else {
+						// other I type instructions
+					}
+				}
+			}
+
 		}
 
 		return null;
@@ -181,16 +289,33 @@ public class Simulator {
 		}
 
 		if (ALUControl.equals("0111")) {
-		//	setLess(arg1, arg2);
+			return binarySetLessThan(arg1, arg2);
 		}
+
+		if (ALUControl.equals("sll")) {
+			int shiftAmount = binaryToDecimal(arg2);
+			return binaryShiftLeft(arg1, shiftAmount);
+		}
+
+		if (ALUControl.equals("srl")) {
+			int shiftAmount = binaryToDecimal(arg2);
+			return binaryShiftRight(arg1, shiftAmount);
+		}
+
+		if (ALUControl.equals("nor")) {
+			String temp = "";
+			temp = binaryOr(arg1, arg2);
+			return binaryNot(temp);
+		}
+
 		return "";
 	}
 
 	/*
-	 * This method simulates the ALU Control Unit, it controlled by the ALUOp
-	 * which is obtained in the decode stage. Using the ALUOp it calls the
-	 * method getFunction(String) to get ALUControl signal then calls ALUOp with
-	 * correct control signal.
+	 * Till now this is unnecessary This method simulates the ALU Control Unit,
+	 * I think karim can use it it controlled by the ALUOp which is obtained in
+	 * the decode stage. Using the ALUOp it calls the method getFunction(String)
+	 * to get ALUControl signal then calls ALUOp with correct control signal.
 	 */
 	public static void ALUControl(String instruction5To0, String ALUOp) {
 		String ALUControlIn = "";
@@ -205,7 +330,7 @@ public class Simulator {
 				}
 			}
 		}
-		//ALUOp(ALUControlIn);
+		// ALUOp(ALUControlIn);
 	}
 
 	/*
@@ -231,11 +356,19 @@ public class Simulator {
 		if (function.equals("101010")) { // set less than
 			return "0111";
 		}
+		if (function.equals("100101")) { // or
+			return "0001";
+		}
+		if (function.equals("000000")) { // shift logical left
+			return "sll";
+		}
+		if (function.equals("000010")) { // shift logical right
+			return "srl";
+		}
+		if (function.equals("100111")) { // nor
+			return "nor";
+		}
 		return result;
-	}
-
-	public static void main(String[] args) {
-
 	}
 
 }
