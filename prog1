@@ -1,3 +1,7 @@
+.data
+100 ,trd
+104 ,tr
+.text
 0xAA
 bne $t1,$s7,-2
 jal 2
