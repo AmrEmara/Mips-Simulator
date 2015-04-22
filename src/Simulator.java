@@ -15,7 +15,7 @@ public class Simulator {
     
     public static void decoder(String binary) {
         String rs, rt, rd;
-        Hashtable<String, String> out = null;
+        HashMap<String, String> out = null;
         out.put("op", binary.substring(0, 5));
         if (binary.startsWith("000000"))
             // if R-format, sends back all the data .
@@ -66,9 +66,7 @@ public class Simulator {
                 out.put("MemWrite", "0");
                 out.put("Branch", "0");
                 out.put("ALUOp", "00");
-            }
-            
-            else if (binary.startsWith("100011")) {
+            } else if (binary.startsWith("100011")) {
                 // if it's load word,set control signals.
                 out.put("RegDst", "0");
                 out.put("ALUSrc", "1");
@@ -100,7 +98,7 @@ public class Simulator {
                 out.put("ALUOp", "00");
             }
         }
-        // pass out to execute;
+        Execute(out);
         
     }
     
