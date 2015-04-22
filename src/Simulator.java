@@ -192,4 +192,308 @@ public class Simulator {
 			//writeBack
 		}
 	}	
+    public static int binaryToDecimal(String s) {
+        if (s.charAt(0) == '1') {
+            return twosComp(s);
+        }
+        
+        return Integer.parseInt(s, 2);
+    }
+    
+    /*
+     * This method takes an integer and converts to a binary string
+     */
+    public static String decimalToBinary(int c) {
+        return Integer.toBinaryString(c);
+    }
+    
+    public static String binaryAdd(String arg1, String arg2) {
+        String res = "";
+        if (arg2.length() != arg1.length()) {
+            System.out.println("Invalid operands for add operation");
+            return null;
+        }
+        return decimalToBinary(binaryToDecimal(arg1) + binaryToDecimal(arg2));
+    }
+    
+    public static String binarySubtract(String arg1, String arg2) {
+        String res = "";
+        if (arg2.length() != arg1.length()) {
+            System.out.println("Invalid operands for add operation");
+            return null;
+        }
+        return decimalToBinary(binaryToDecimal(arg1) - binaryToDecimal(arg2));
+    }
+    
+    public static String binaryAnd(String a, String b) {
+        String result = "";
+        if (a.length() != b.length()) {
+            System.out.println("Invalid operands for And operation");
+            return null;
+        }
+        for (int i = 0; i < a.length(); i++) {
+            char c;
+            if (a.charAt(i) == '1' && b.charAt(i) == '1') {
+                c = '1';
+            } else {
+                c = '0';
+            }
+            result += c;
+        }
+        return result;
+    }
+    
+    public static String binarySetLessThan(String arg1, String arg2) {
+        String result = "";
+        int a = binaryToDecimal(arg1);
+        int b = binaryToDecimal(arg2);
+        if (a > b) {
+            return "1";
+        }
+        return "0";
+    }
+    
+    public static String binaryOr(String a, String b) {
+        String result = "";
+        if (a.length() != b.length()) {
+            System.out.println("Invalid operands for And operation");
+            return null;
+        }
+        for (int i = 0; i < a.length(); i++) {
+            char c;
+            if (a.charAt(i) == '1' || b.charAt(i) == '1') {
+                c = '1';
+            } else {
+                c = '0';
+            }
+            result += c;
+        }
+        return result;
+    }
+    
+    public static String binaryNot(String a) {
+        String result = "";
+        for (int i = 0; i < a.length(); i++) {
+            if (a.charAt(i) == '1') {
+                result += "0";
+            } else {
+                result += "1";
+            }
+        }
+        return result;
+    }
+    
+    public static String signExtendor(String s) {
+        if (s.length() == 32) {
+            return s;
+        }
+        char c = s.charAt(0);
+        while (s.length() < 32) {
+            s = c + s;
+        }
+        return s;
+        
+    }
+    
+    public static String binaryShiftLeft(String s, int shiftAmount) {
+        for (int i = 0; i < shiftAmount; i++) {
+            s += "0";
+            s = s.substring(1, s.length());
+        }
+        
+        return s;
+    }
+    
+    public static String binaryShiftRight(String s, int shiftAmount) {
+        for (int i = 0; i < shiftAmount; i++) {
+            s = "0" + s;
+            s = s.substring(0, s.length() - 1);
+        }
+        return s;
+    }
+    
+    // when a load control signal is received the opcode is checked and flags
+    // added to tell
+    // if this is a lw or lb instruction.
+    public static HashMap Execute(HashMap in) {
+        HashMap<String, String> ExMem = new HashMap<String, String>();
+        String out = "";
+        ExMem.put("MemtoReg", (String) in.get("MemtoReg"));
+        ExMem.put("RegWrite", (String) in.get("RegWrite"));
+        ExMem.put("MemRead", (String) in.get("MemRead"));
+        ExMem.put("MemWrite", (String) in.get("MemWrite"));
+        ExMem.put("RegWrite", (String) in.get("RegWrite"));
+        ExMem.put("Branch", (String) in.get("Branch"));
+        ExMem.put("lb", "0");
+        ExMem.put("lbu", "0");
+        ExMem.put("lui", "0");
+        ExMem.put("sb", "0");
+        
+        String controlSignals = "";
+        String ALUfunc = "";
+        String rFunc = "";
+        controlSignals += in.get("RegDst");//
+        controlSignals += in.get("ALUSrc");//
+        controlSignals += in.get("MemtoReg");
+        controlSignals += in.get("RegWrite");
+        controlSignals += in.get("MemRead");
+        controlSignals += in.get("MemWrite");
+        controlSignals += in.get("Branch");
+        controlSignals += in.get("ALUOp");//
+        
+        // what should happen if the control signals indicate a R-type
+        // instruction
+        if (controlSignals.equals("100100010")) {
+            ALUfunc = getFunction((String) in.get("funct"));
+            out = operation(ALUfunc, (String) in.get("firstSource"),
+                            (String) in.get("secondSource"));
+            ExMem.put("result", out);
+        } else {
+            if (controlSignals.equals("011110000")) {
+                String op = (String) in.get("OpCode");
+                // adds offset to rs to get address to be loaded
+                if (op.equals("100000")) { // instruction
+                    ExMem.put("lb", "1");
+                    out = binaryAdd((String) in.get("sourceRegister"),
+                                    (String) in.get("address"));
+                } else {
+                    if (op.equals("100100")) {
+                        ExMem.put("lbu", "1");
+                        out = binaryAdd((String) in.get("sourceRegister"),
+                                        (String) in.get("address"));
+                    } else {
+                        
+                        // Correct after changed in the assembler, if you see
+                        // this we are screwed
+                        ExMem.put("lui", "1");
+                        out = (String) in.get("address");
+                    }
+                }
+                
+            } else {
+                if (controlSignals.equals("X1X001000")) { // save word
+                    // instruction
+                    out = binaryAdd((String) in.get("sourceRegister"),
+                                    (String) in.get("address"));
+                    ExMem.put("writeData", (String) in.get("firstSource"));
+                    
+                } else {
+                    // This part is for I-format instructions which is only the
+                    // addi instruction
+                    String immediate = (String) in.get("address");
+                    out = binaryAdd((String) in.get("Source"), immediate);
+                    
+                }
+            }
+            
+        }
+        ExMem.put("result", out);
+        return ExMem;
+    }
+    
+    public static String operation(String ALUControl, String arg1, String arg2) {
+        String result = "";
+        if (ALUControl.equals("0010")) {
+            return binaryAdd(arg1, arg2);
+        }
+        
+        if (ALUControl.equals("0110")) {
+            return binarySubtract(arg1, arg2);
+        }
+        
+        if (ALUControl.equals("0000")) {
+            return binaryAnd(arg1, arg2);
+        }
+        
+        if (ALUControl.equals("0001")) {
+            return binaryOr(arg1, arg2);
+        }
+        
+        if (ALUControl.equals("0111")) {
+            return binarySetLessThan(arg1, arg2);
+        }
+        
+        if (ALUControl.equals("sll")) {
+            int shiftAmount = 0;
+            return binaryShiftLeft(arg2, shiftAmount);
+        }
+        
+        if (ALUControl.equals("srl")) {
+            int shiftAmount = 0;
+            return binaryShiftRight(arg2, shiftAmount);
+        }
+        
+        if (ALUControl.equals("nor")) {
+            String temp = "";
+            temp = binaryOr(arg1, arg2);
+            return binaryNot(temp);
+        }
+        
+        return "";
+    }
+    
+    /*
+     * This method is called in the case of an R-type function arriving to the
+     * Execution stage. It takes bits 5-0 which are the function bits and
+     * computes the ALU Control Input which is passed to the ALU to perform the
+     * required operation.
+     */
+    public static String getFunction(String function) {
+        String result = "";
+        if (function.equals("100000")) { // add
+            return "0010";
+        }
+        if (function.equals("100010")) { // subtract
+            return "0110";
+        }
+        if (function.equals("100100")) { // and
+            return "0000";
+        }
+        if (function.equals("100101")) { // or
+            return "0001";
+        }
+        if (function.equals("101010")) { // set less than
+            return "0111";
+        }
+        if (function.equals("100101")) { // or
+            return "0001";
+        }
+        // Need to check the correct codes for shifting from the book
+        
+        if (function.equals("000000")) { // shift logical left
+            return "sll";
+        }
+        
+        if (function.equals("000010")) { // shift logical right
+            return "srl";
+        }
+        
+        if (function.equals("100111")) { // nor
+            return "nor";
+        }
+        return result;
+    }
+    
+    public static int twosComp(String c) {
+        String s = "";
+        boolean firstOne = false;
+        for (int i = 31; i >= 0; i--) {
+            if (firstOne == true) {
+                if (c.charAt(i) == '1') {
+                    s = '0' + s;
+                } else {
+                    s = '1' + s;
+                }
+                
+            } else {
+                if (c.charAt(i) == '1') {
+                    firstOne = true;
+                }
+                s = c.charAt(i) + s;
+            }
+        }
+        return -Integer.parseInt(s, 2);
+    }
+    
 }
+
