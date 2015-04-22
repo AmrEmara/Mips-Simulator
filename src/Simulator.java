@@ -53,9 +53,9 @@ public class Simulator {
 
 	}
 
-	public static String fetch() {
+	public static String fetch(HashMap<Integer,String>  memory,int pc) {
 		int tempPc = pc;
-		String binary = registerFile.get(""); // fetch the instruction from
+		String binary = memory.get(pc); // fetch the instruction from
 												// memory
 		String address;// to save the address part of the instruction
 		if (binary.startsWith("0001 00")) { // check if beq
