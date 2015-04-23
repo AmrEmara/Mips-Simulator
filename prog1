@@ -1,12 +1,13 @@
 .data
-100 ,trd
-104 ,tr
+0xFF,{700,200,300,400}
+0xA,12345
 .text
 0xAA
+blt $t0,$t1,LOOP 
+add $t3,$t4,$s5
 bne $t1,$s7,-2
 jal 2
 sub $s1,$s2,$s3
 j 42
 addi $s2,$s3,-4
 lw $t0,8($s1)
-add $t3,$t4,$s5
