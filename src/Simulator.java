@@ -15,11 +15,22 @@ public class Simulator {
     
     public static void decoder(String binary) {
         String rs, rt, rd;
-        HashMap<String, String> out = null;
-        out.put("op", binary.substring(0, 5));
+        HashMap<String, String> out = new HashMap<String, String>();
+        out.put("opCode", binary.substring(0, 6));
         if (binary.startsWith("000000"))
-            // if R-format, sends back all the data .
+        /*
+         * If the instructions starts with "000000" then its an R-Format
+         * instruction The control signals are set then the contents of
+         * registers rs and rt are placed in the pipline register. The address
+         * of rd is put in the register.
+         */
         {
+            String opcode = binary.substring(0, 6);
+            // String rs = binary.substring(6, 11);
+            // String rt = binary.substring(11, 16);
+            // String rd = binary.substring(16, 21);
+            String shmat = binary.substring(21, 26);
+            String func = binary.substring(26, 32);
             // set control signals.
             out.put("RegDst", "1");
             out.put("ALUSrc", "0");
@@ -30,14 +41,14 @@ public class Simulator {
             out.put("Branch", "0");
             out.put("ALUOp", "10");
             // read the values in rs and rt and place them in registers
-            rs = binary.substring(6, 10);
-            rt = binary.substring(16, 20);
+            rs = binary.substring(6, 11);
+            rt = binary.substring(11, 16);
             rs = registerFile.get(rs);
             rt = registerFile.get(rt);
-            out.put("firstSource", rs);
-            out.put("destinationRegister", binary.substring(11, 15));
-            out.put("secondSource", rt);
-            out.put("shamt", binary.substring(21, 25));
+            out.put("rs", rs);
+            out.put("rd", binary.substring(16, 21));
+            out.put("rt", rt);
+            out.put("shamt", binary.substring(21, 26));
             out.put("funct", binary.substring(26));
         } else if (binary.startsWith("000010") || binary.startsWith("000011"))
             // if J-format ,sends back the address.
@@ -50,12 +61,11 @@ public class Simulator {
             // format ="I";
             // rt = binary.substring(11,15);
             // imm= binary.substring(16);
-            
-            rs = binary.substring(6, 10);
+            rs = binary.substring(6, 11);
             rs = registerFile.get(rs);
-            out.put("sourceRegister", rs);
-            out.put("destinationRegister", binary.substring(11, 15));
-            out.put("address", binary.substring(16));
+            out.put("rs", rs);
+            out.put("rt", binary.substring(11, 16));
+            out.put("offset", binary.substring(16));
             if (binary.startsWith("001000")) {
                 // if it's a addi ,set control signals.
                 out.put("RegDst", "0");
@@ -66,7 +76,8 @@ public class Simulator {
                 out.put("MemWrite", "0");
                 out.put("Branch", "0");
                 out.put("ALUOp", "00");
-            } else if (binary.startsWith("100011")) {
+            } else if (binary.startsWith("100011") || binary.startsWith("100000") ||
+                       binary.startsWith("100100") || binary.startsWith("001111")) {
                 // if it's load word,set control signals.
                 out.put("RegDst", "0");
                 out.put("ALUSrc", "1");
@@ -189,6 +200,11 @@ public class Simulator {
         }
     }
     
+    public static int binaryToDecimalUnsigned(String s){
+        return Integer.parseInt(s,2);
+    }
+
+    
     public static int binaryToDecimal(String s) {
         if (s.charAt(0) == '1') {
             return twosComp(s);
@@ -206,10 +222,12 @@ public class Simulator {
     
     public static String binaryAdd(String arg1, String arg2) {
         String res = "";
-        if (arg2.length() != arg1.length()) {
-            System.out.println("Invalid operands for add operation");
-            return null;
-        }
+        if(arg1.length() == 16)
+            return decimalToBinary(binaryToDecimalUnsigned(arg1) + binaryToDecimal(arg2));
+        
+        if (arg2.length() == 16)
+            return decimalToBinary(binaryToDecimal(arg1) + binaryToDecimalUnsigned(arg2));
+        
         return decimalToBinary(binaryToDecimal(arg1) + binaryToDecimal(arg2));
     }
     
@@ -312,7 +330,7 @@ public class Simulator {
     // when a load control signal is received the opcode is checked and flags
     // added to tell
     // if this is a lw or lb instruction.
-    public static HashMap Execute(HashMap in) {
+    public static HashMap<String, String> Execute(HashMap<String, String> in) {
         HashMap<String, String> ExMem = new HashMap<String, String>();
         String out = "";
         ExMem.put("MemtoReg", (String) in.get("MemtoReg"));
@@ -338,37 +356,65 @@ public class Simulator {
         controlSignals += in.get("Branch");
         controlSignals += in.get("ALUOp");//
         
-        // what should happen if the control signals indicate a R-type
+        // This portion checks if the control signals provided from the decode
+        // register
+        // are those of an R-formtat. If it is identified as R-format then
+        // we take the function bits passed form the decode stage to determone
+        // the type
+        // of operation to be performed and calls the correct function to
+        // perform this
+        // operation. The result is put in the Ex/Mem register with name =
+        // "result"
+        // This result should be saved in the address provided in the rd of this
         // instruction
+        // this is taken from decode stage and passed to the write back stage
+        // with
+        // the name = "destinationRegister".
         if (controlSignals.equals("100100010")) {
+            System.out.println("3erf eno r-format");
             ALUfunc = getFunction((String) in.get("funct"));
-            out = operation(ALUfunc, (String) in.get("firstSource"),
-                            (String) in.get("secondSource"));
+            out = operation(ALUfunc, (String) in.get("rs"),
+                            (String) in.get("rt"));
             ExMem.put("result", out);
+            ExMem.put("destinationRegister", (String) in.get("rd"));
+            
         } else {
+            // This means that this a load instruction.
+            // for all cases: lw,lb, lbu, lui
+            // we will calculate the address of the instruction in memory by
+            // summing the offset and contents inside the address passed in the
+            // rs register of this instruction.
+            // This portion calculates the address that we want to load and puts
+            // it in the register with name = "result". The data should be loaded in
+            // the register rt provided in the instruction, this is passed to the
+            // write back stage
+            // with name = "destinationRegister"
             if (controlSignals.equals("011110000")) {
-                String op = (String) in.get("OpCode");
+                String op = (String) in.get("opCode");
+                out = binaryAdd((String) in.get("rs"),
+                                (String) in.get("offset"));
                 // adds offset to rs to get address to be loaded
                 if (op.equals("100000")) { // instruction
+                    System.out.println("3erf lb");
                     ExMem.put("lb", "1");
-                    out = binaryAdd((String) in.get("sourceRegister"),
-                                    (String) in.get("address"));
                     
                 } else {
                     if (op.equals("100100")) {
+                        System.out.println("3erf lbu");
                         ExMem.put("lbu", "1");
-                        out = binaryAdd((String) in.get("sourceRegister"),
-                                        (String) in.get("address"));
-                    } else {
                         
-                        // Correct after changed in the assembler, if you see
-                        // this we are screwed
-                        ExMem.put("lui", "1");
-                        out = (String) in.get("address");
+                    } else {
+                        if (op.equals("001111")) {
+                            System.out.println("3erf lbi");
+                            ExMem.put("lui", "1");
+                            out = (String) in.get("offset");
+                        }else {
+                            System.out.println("3mlha lw");
+                        }
                     }
+                    
+                    ExMem.put("destinationRegister", (String) in.get("rt"));
                 }
-                ExMem.put("loadIn", (String) in.get("destinationRegister"));
-                
             } else {
                 if (controlSignals.equals("X1X001000")) { // save word
                     // instruction
@@ -382,14 +428,18 @@ public class Simulator {
                 } else {
                     // This part is for I-format instructions which is only the
                     // addi instruction
-                    String immediate = (String) in.get("address");
-                    out = binaryAdd((String) in.get("Source"), immediate);
+                    System.out.println("el mfrood keda addi");
+                    String immediate = (String) in.get("offset");
+                    out = binaryAdd((String) in.get("rs"), immediate);
+                    ExMem.put("putResultIn", (String) in.get("rt"));
+                    ExMem.put("result", out);
                     
                 }
             }
             
         }
         ExMem.put("result", out);
+        System.out.println(ExMem.toString());
         return ExMem;
     }
     
@@ -497,4 +547,72 @@ public class Simulator {
         return -Integer.parseInt(s, 2);
     }
     
+    public static void main(String[] args) {
+        Simulator sim = new Simulator();
+        
+        // Test case 1
+        // adding 50 and -50,
+        // instruction example
+        /*
+         * String binary = "00000010000000000100000000100000"; // correct
+         * divison of instruction
+         *
+         * String opcode = binary.substring(0, 6); String rs =
+         * binary.substring(6, 11); String rt = binary.substring(11, 16); String
+         * rd = binary.substring(16, 21); String shmat = binary.substring(21,
+         * 26); String func = binary.substring(26, 32);
+         * System.out.println(opcode + " | " + rs + " | " + rt + " | " + rd +
+         * " | " + shmat + " | " + func); sim.registerFile.put("10000",
+         * "00000000000000000000000000110010"); sim.registerFile.put("00000",
+         * "11111111111111111111111111001110"); decoder(binary);
+         *
+         * // Test case 2 subtraction instruction
+         *
+         * String binary = "00000010000000000100000000100010"; // correct
+         * divison of instruction String opcode = binary.substring(0, 6); String
+         * rs = binary.substring(6, 11); String rt = binary.substring(11, 16);
+         * String rd = binary.substring(16, 21); String shmat =
+         * binary.substring(21, 26); String func = binary.substring(26, 32);
+         * System.out.println(opcode + " | " + rs + " | " + rt + " | " + rd +
+         * " | " + shmat + " | " + func); sim.registerFile.put("10000",
+         * "00000000000000000000000000110010"); sim.registerFile.put("00000",
+         * "11111111111111111111111111001110"); decoder(binary);
+         *
+         * System.out.println(binaryToDecimal("00000000000000000000000001100100")
+         * );
+         *
+         *
+         *
+         * String binary = "00100010000010010000000000001001"; // correct
+         * divison of instruction String opcode = binary.substring(0, 6); String
+         * rs = binary.substring(6, 11); String rt = binary.substring(11, 16);
+         * String offset = binary.substring(16); System.out.println(opcode +
+         * " | " + rs + " | " + rt + " | " + offset);
+         * sim.registerFile.put("10000", "00000000000000000000000000110010");
+         * sim.registerFile.put("00000", "00000000000000000000000000000000");
+         * decoder(binary);
+         * //System.out.println(binaryToDecimal("00000000000000000000000001100100"
+         * ));
+         */
+        
+        
+        // testing lw $t2, 0($t0)
+        /*
+         String bin = "10001101000010100000000000000001";
+         sim.registerFile.put("01000", "00000000000000000000000001100100");
+         decoder(bin);
+         */
+        
+        // testing lw $t2, 0($t0)
+        /*		
+         String bin = "10001101000010100000000000000001";
+         sim.registerFile.put("01000", "00000000000000000000000001100100");
+         decoder(bin);		
+         */
+        
+        
+        
+        
+    }
+
 }
