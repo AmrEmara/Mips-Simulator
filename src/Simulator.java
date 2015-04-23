@@ -113,26 +113,26 @@ public class Simulator {
         
     }
     
-    public static String fetch(HashMap<Integer, String> memory, int pc) {
-        int tempPc = pc;
+    public void fetch(HashMap<Integer, String> memory, int pc) {
+    	int tempPc = pc;
         String binary = memory.get(pc); // fetch the instruction from
         // memory
         String address;// to save the address part of the instruction
-        if (binary.startsWith("0001 00")) { // check if beq
+        if (binary.startsWith("000100")) { // check if beq
             address = binary.substring(16); // get the address part of the
             // instruction
             tempPc = Integer.parseInt(address, 2);// get the decimal value of
             // the address and store it
             // in tempPc
         } else {
-            if (binary.startsWith("0001 01")) { // check if bne
+            if (binary.startsWith("000101")) { // check if bne
                 address = binary.substring(16); // get the address part of the
                 // instruction
                 tempPc = Integer.parseInt(address, 2);// get the decimal value
                 // of the address and
                 // store it in tempPc
             } else {
-                if (binary.startsWith("0000 10")) { // check if j
+                if (binary.startsWith("000010")) { // check if j
                     address = binary.substring(6); // get the address part of
                     // the instruction
                     tempPc = Integer.parseInt(address, 2);// get the decimal
@@ -140,7 +140,7 @@ public class Simulator {
                     // address and store
                     // it in tempPc
                 } else {
-                    if (binary.startsWith("0000 11")) { // check if jal
+                    if (binary.startsWith("000011")) { // check if jal
                         address = binary.substring(6); // get the address part
                         // of the instruction
                         registerFile.put("00000000000000000000000000011111",
@@ -153,9 +153,9 @@ public class Simulator {
                         // store it in
                         // tempPc
                     } else {
-                        if (binary.startsWith("0000 00")
+                        if (binary.startsWith("000000")
                             && binary.substring(11).equals(
-                                                           "0 0000 0000 0000 0000 1000")) { // check
+                                                           "000000000000000001000")) { // check
                             // if
                             // jr
                             tempPc = Integer.parseInt(
@@ -172,7 +172,8 @@ public class Simulator {
             }
         }
         pc = tempPc;
-        return binary; // return the instruction
+        decoder(binary); // return the instruction
+        fetch(memory,pc);
     }
     
     public void memor(HashMap<String, String> binary) {
@@ -548,8 +549,13 @@ public class Simulator {
     }
     
     public static void main(String[] args) {
-        Simulator sim = new Simulator();
-        
+        //Simulator sim = new Simulator();
+        //HashMap<Integer,String> x = new HashMap();
+        //x.put(0, "000000ssssstttttddddd00000100000");
+        //x.put(4, "001000ssssstttttiiiiiiiiiiiiiiii");
+        //x.put(8, "00001000000000000000000000010000");
+        //x.put(16, "000000ssssstttttddddd00000100000");
+        //fetch(x,0);
         // Test case 1
         // adding 50 and -50,
         // instruction example
