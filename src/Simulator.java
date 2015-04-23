@@ -4,13 +4,14 @@ import java.util.Hashtable;
 public class Simulator {
     static String rs, rt;
     static HashMap<String, String> registerFile;
-    String[] IFID, IDEX, EXMEM, MEMWB; // pipeline registers as array of strings
     HashMap<Integer, String> memory;
+    int pc;
     
-    public Simulator() {
+    public Simulator(HashMap<Integer, String> inputMemory , int pc) {
         // the key for the registerFile is the register number in binary
         registerFile = new HashMap<String, String>();
-        memory = new HashMap<Integer, String>();
+        this.memory = new HashMap<Integer, String>();
+        this.pc = pc;
     }
     
     public static void decoder(String binary) {
@@ -113,9 +114,9 @@ public class Simulator {
         
     }
     
-    public void fetch(HashMap<Integer, String> memory, int pc) {
-    	int tempPc = pc;
-        String binary = memory.get(pc); // fetch the instruction from
+    public void fetch() {
+    	int tempPc = this.pc;
+        String binary = this.memory.get(pc); // fetch the instruction from
         // memory
         String address;// to save the address part of the instruction
         if (binary.startsWith("000100")) { // check if beq
@@ -171,9 +172,9 @@ public class Simulator {
                 }
             }
         }
-        pc = tempPc;
+        this.pc = tempPc;
         decoder(binary); // return the instruction
-        fetch(memory,pc);
+        fetch();
     }
     
     public void memor(HashMap<String, String> binary) {
