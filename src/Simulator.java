@@ -88,7 +88,7 @@ public class Simulator {
                 out.put("MemWrite", "0");
                 out.put("Branch", "0");
                 out.put("ALUOp", "00");
-            } else if (binary.startsWith("100011")) {
+            } else if (binary.startsWith("101011") || binary.startsWith("101000") ) {
                 // if it's save word,set control signals.
                 out.put("RegDst", "X");
                 out.put("ALUSrc", "1");
@@ -114,9 +114,11 @@ public class Simulator {
         
     }
     
+
     public void fetch() {
     	int tempPc = this.pc;
         String binary = this.memory.get(pc); // fetch the instruction from
+
         // memory
         String address;// to save the address part of the instruction
         if (binary.startsWith("000100")) { // check if beq
@@ -201,12 +203,6 @@ public class Simulator {
             // writeBack
         }
     }
-    
-    public static int binaryToDecimalUnsigned(String s){
-        return Integer.parseInt(s,2);
-    }
-
-    
     public static int binaryToDecimal(String s) {
         if (s.charAt(0) == '1') {
             return twosComp(s);
@@ -215,11 +211,33 @@ public class Simulator {
         return Integer.parseInt(s, 2);
     }
     
+    public static int binaryToDecimalUnsigned(String s){
+        int i =0;
+        int result = 0;
+        
+        while (i<s.length()){
+            if(s.charAt(i) == '1'){
+                result += Math.pow(2.0,i );
+            }
+            i++;
+        }
+        return result;
+    }
+    
     /*
      * This method takes an integer and converts to a binary string
      */
-    public static String decimalToBinary(int c) {
-        return Integer.toBinaryString(c);
+    public static String decimalToBinary(int num) {
+        if (num < 0) {
+            return Integer.toBinaryString(num);
+        }
+        String res = Integer.toBinaryString(num);
+        if (res.length() < 32) {
+            for (int i = res.length(); i < 32; i++) {
+                res = "0" + res;
+            }
+        }
+        return res;
     }
     
     public static String binaryAdd(String arg1, String arg2) {
@@ -264,9 +282,20 @@ public class Simulator {
         String result = "";
         int a = binaryToDecimal(arg1);
         int b = binaryToDecimal(arg2);
-        if (a > b) {
+        System.out.println("the value of rs is: " + a );
+        System.out.println("the value of rt is: " + b);
+        if (a < b)
             return "1";
-        }
+        return "0";
+    }
+    
+    public static String binarySetLessThanUnsigned(String arg1, String arg2){
+        int a = binaryToDecimalUnsigned(arg1);
+        int b = binaryToDecimalUnsigned(arg2);
+        System.out.println("the value of a is: " + a);
+        System.out.println("the value of b is: " + b);
+        if(a < b)
+            return "1";
         return "0";
     }
     
@@ -376,7 +405,7 @@ public class Simulator {
             System.out.println("3erf eno r-format");
             ALUfunc = getFunction((String) in.get("funct"));
             out = operation(ALUfunc, (String) in.get("rs"),
-                            (String) in.get("rt"));
+                            (String) in.get("rt"), (String) in.get("shamt"));
             ExMem.put("result", out);
             ExMem.put("destinationRegister", (String) in.get("rd"));
             
@@ -418,22 +447,27 @@ public class Simulator {
                     ExMem.put("destinationRegister", (String) in.get("rt"));
                 }
             } else {
-                if (controlSignals.equals("X1X001000")) { // save word
-                    // instruction
-                    // writeData is the data to be written and out contains the
-                    // address
-                    // where the data will be written in
-                    out = binaryAdd((String) in.get("sourceRegister"),
-                                    (String) in.get("address"));
-                    ExMem.put("writeData", (String) in.get("firstSource"));
+                // This is for save instructions, the address is calculated by adding
+                // the contents of the rs and offset then placed in register with tag
+                // result. The data in register rt should be saved in the address
+                // calculated.
+                if (controlSignals.equals("X1X001000")) {
+                    String op = (String) in.get("opCode");
+                    if(op.equals("101000")){
+                        ExMem.put("sb", "1");
+                    }
+                    out = binaryAdd((String) in.get("rs"),
+                                    (String) in.get("offset"));
+                    ExMem.put("writeData", (String) in.get("rt"));
                     
                 } else {
-                    // This part is for I-format instructions which is only the
-                    // addi instruction
+                    // This part is for addi instructions. The offset is
+                    // added to the content of rs and the result should
+                    // be put in the address inside the rt register.
                     System.out.println("el mfrood keda addi");
                     String immediate = (String) in.get("offset");
                     out = binaryAdd((String) in.get("rs"), immediate);
-                    ExMem.put("putResultIn", (String) in.get("rt"));
+                    ExMem.put("destinationRegister", (String) in.get("rt"));
                     ExMem.put("result", out);
                     
                 }
@@ -445,7 +479,7 @@ public class Simulator {
         return ExMem;
     }
     
-    public static String operation(String ALUControl, String arg1, String arg2) {
+    public static String operation(String ALUControl, String arg1, String arg2, String shift) {
         String result = "";
         if (ALUControl.equals("0010")) {
             return binaryAdd(arg1, arg2);
@@ -466,14 +500,17 @@ public class Simulator {
         if (ALUControl.equals("0111")) {
             return binarySetLessThan(arg1, arg2);
         }
+        if (ALUControl.equals("sltu")) {
+            return binarySetLessThanUnsigned(arg1, arg2);
+        }
         
         if (ALUControl.equals("sll")) {
-            int shiftAmount = 0;
+            int shiftAmount = Integer.parseInt(shift,2);
             return binaryShiftLeft(arg2, shiftAmount);
         }
         
         if (ALUControl.equals("srl")) {
-            int shiftAmount = 0;
+            int shiftAmount = Integer.parseInt(shift,2);
             return binaryShiftRight(arg2, shiftAmount);
         }
         
@@ -495,6 +532,7 @@ public class Simulator {
     public static String getFunction(String function) {
         String result = "";
         if (function.equals("100000")) { // add
+            System.out.println("3erf eno add");
             return "0010";
         }
         if (function.equals("100010")) { // subtract
@@ -508,6 +546,9 @@ public class Simulator {
         }
         if (function.equals("101010")) { // set less than
             return "0111";
+        }
+        if (function.equals("101001")) { // set less than
+            return "sltu";
         }
         if (function.equals("100101")) { // or
             return "0001";
@@ -548,15 +589,9 @@ public class Simulator {
         }
         return -Integer.parseInt(s, 2);
     }
-    
     public static void main(String[] args) {
         //Simulator sim = new Simulator();
-        //HashMap<Integer,String> x = new HashMap();
-        //x.put(0, "000000ssssstttttddddd00000100000");
-        //x.put(4, "001000ssssstttttiiiiiiiiiiiiiiii");
-        //x.put(8, "00001000000000000000000000010000");
-        //x.put(16, "000000ssssstttttddddd00000100000");
-        //fetch(x,0);
+        
         // Test case 1
         // adding 50 and -50,
         // instruction example
@@ -611,15 +646,49 @@ public class Simulator {
          */
         
         // testing lw $t2, 0($t0)
-        /*		
+        /*
          String bin = "10001101000010100000000000000001";
          sim.registerFile.put("01000", "00000000000000000000000001100100");
-         decoder(bin);		
+         decoder(bin);
+         */
+        /*
+         //testing sw and sb
+         String binary = "10100001001010100000000000000001";
+         sim.registerFile.put("01010", "oh yeah");
+         sim.registerFile.put("01001", "00000000000000000000000000110010");
+         decoder(binary);
+         */
+        //testing sll and srl
+        /*
+         String binary = "00000000000010010100100100000000";
+         sim.registerFile.put("01001", "00000000000000000000000000000001");
+         decoder(binary);
+         */
+        //100100
+        // testing and + nor
+        /*
+         String binary = "00000010000000000100000000100111";
+         sim.registerFile.put("10000", "00000010000000000100000000100100");
+         sim.registerFile.put("00000", "00000000000000000000000000000000");
+         decoder(binary);
          */
         
+        //testing slt
+        /*
+         String binary = "00000001001100010101100000101010";
+         sim.registerFile.put("01001","00000010000000000100000000100100");
+         sim.registerFile.put("10001","00011100000000000000000000000010");
+         decoder(binary);
+         */
         
-        
+        // testing sltu
+        /*
+         String binary = "00000001001100010101100000101001";
+         sim.registerFile.put("01001","00000010000000000100000000100100");
+         sim.registerFile.put("10001","11011100000000000000000000000010");
+         decoder(binary);
+         */
         
     }
-
+    
 }
