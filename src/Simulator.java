@@ -675,6 +675,30 @@ public class Simulator {
         this.pc = tempPc;
         decoder(binary); // return the instruction
     }
+     public void WriteBack(HashMap<String, String> binary) {
+		
+		 
+    	if (binary.get("memoryToRegister").equals("1")){ 
+    		// this if condition to check whether to add from memory or register, and in this case ALU
+    		
+    		if(binary.get("UpperI").equals("1")){
+    			// this if handles case of load upper immediate
+    			
+    			String tmp = binary.get("result").substring(16)+"0000000000000000";
+    			this.registerFile.put(binary.get("rd"),tmp);
+    			// we substring the last 16 bits from the register and then we add 16 0's, aka 32 bits, then add it to rd
+    		}
+    		else{
+    			// this case we add to the register the value from the ALU
+    			this.registerFile.put(binary.get("rd"),binary.get("result"));
+    		}
+    	}
+		else{
+			// this case we add the value from the Memory to the register 
+			this.registerFile.put(binary.get("rd"),binary.get("data"));
+		}
+			 
+	}
     
     public static void main(String[] args) {
         //Simulator sim = new Simulator();
