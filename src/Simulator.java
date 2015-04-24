@@ -588,22 +588,7 @@ public class Simulator {
             }
         }
         return -Integer.parseInt(s, 2);
-    
-     public static void WriteBack(){
-		 if (MEMWB.getReadRegWrite() == 1) {
-			// checks if ALU is over and write signal is ready
-			 if (MEMWB.getMemtoReg() == 0) {
-					// case if writing in a reg from ALU
-					regs[MEMWB.getReadWriteRegister()] = MEMWB.getReadALUresult();
-				
-				} else if (MEMWB.getMemtoReg() == 1) {
-					// case if writing in a reg from MEM
-					regs[MEMWB.getReadWriteRegister()] = MEMWB.getReadData();
-				}
-			}
-		}
         
-    }
     public static void main(String[] args) {
         //Simulator sim = new Simulator();
         
