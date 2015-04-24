@@ -588,7 +588,6 @@ public class Simulator {
             }
         }
         return -Integer.parseInt(s, 2);
-        
     public static void main(String[] args) {
         //Simulator sim = new Simulator();
         
