@@ -15,7 +15,7 @@ public class Simulator {
         this.endAddress=endAddress;
     }
     
-    public static void decoder(String binary) {
+    public void decoder(String binary) {
         String rs, rt, rd;
         HashMap<String, String> out = new HashMap<String, String>();
         out.put("opCode", binary.substring(0, 6));
@@ -115,14 +115,14 @@ public class Simulator {
         
     }
     
-
+    
     public void fetch() {
-    	if(this.pc>endAddress){
-    		return;
-    	}
-    	int tempPc = this.pc;
+        if(this.pc>endAddress){
+            return;
+        }
+        int tempPc = this.pc;
         String binary = this.memory.get(pc); // fetch the instruction from
-
+        
         // memory
         String address;// to save the address part of the instruction
         if (binary.startsWith("000100")) { // check if beq
@@ -365,7 +365,7 @@ public class Simulator {
     // when a load control signal is received the opcode is checked and flags
     // added to tell
     // if this is a lw or lb instruction.
-    public static HashMap<String, String> Execute(HashMap<String, String> in) {
+    public void Execute(HashMap<String, String> in) {
         HashMap<String, String> ExMem = new HashMap<String, String>();
         String out = "";
         ExMem.put("MemtoReg", (String) in.get("MemtoReg"));
@@ -480,7 +480,7 @@ public class Simulator {
         }
         ExMem.put("result", out);
         System.out.println(ExMem.toString());
-        return ExMem;
+        memor(ExMem);
     }
     
     public static String operation(String ALUControl, String arg1, String arg2, String shift) {
@@ -592,30 +592,31 @@ public class Simulator {
             }
         }
         return -Integer.parseInt(s, 2);
-    
-       public static void WriteBack(){
-		 if (MEMWB.getReadRegWrite() == 1) {
-			// checks if ALU is over and write signal is ready
-			 if (MEMWB.getMemtoReg() == 0) {
-					// case if writing in a reg from ALU
-					regs[MEMWB.getReadWriteRegister()] = MEMWB.getReadALUresult();
-				
-				} else if (MEMWB.getMemtoReg() == 1) {
-					// case if writing in a reg from MEM
-					regs[MEMWB.getReadWriteRegister()] = MEMWB.getReadData();
-				}
-			}
-		}
-        
     }
-  
-  public void fetch_single() {
-    	if(this.pc>endAddress){
-    		return;
-    	}
-    	int tempPc = this.pc;
+    
+    public static void WriteBack(){
+        if (MEMWB.getReadRegWrite() == 1) {
+            // checks if ALU is over and write signal is ready
+            if (MEMWB.getMemtoReg() == 0) {
+                // case if writing in a reg from ALU
+                regs[MEMWB.getReadWriteRegister()] = MEMWB.getReadALUresult();
+                
+            } else if (MEMWB.getMemtoReg() == 1) {
+                // case if writing in a reg from MEM
+                regs[MEMWB.getReadWriteRegister()] = MEMWB.getReadData();
+            }
+        }
+    }
+    
+    
+    
+    public void fetch_single() {
+        if(this.pc>endAddress){
+            return;
+        }
+        int tempPc = this.pc;
         String binary = this.memory.get(pc); // fetch the instruction from
-
+        
         // memory
         String address;// to save the address part of the instruction
         if (binary.startsWith("000100")) { // check if beq
@@ -674,7 +675,7 @@ public class Simulator {
         this.pc = tempPc;
         decoder(binary); // return the instruction
     }
-  
+    
     public static void main(String[] args) {
         //Simulator sim = new Simulator();
         
