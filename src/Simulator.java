@@ -5,13 +5,14 @@ public class Simulator {
     static String rs, rt;
     static HashMap<String, String> registerFile;
     HashMap<Integer, String> memory;
-    int pc;
+    int pc, endAddress;
     
-    public Simulator(HashMap<Integer, String> inputMemory , int pc) {
+    public Simulator(HashMap<Integer, String> inputMemory , int pc, int endAddress) {
         // the key for the registerFile is the register number in binary
         registerFile = new HashMap<String, String>();
         this.memory = inputMemory;
         this.pc = pc;
+        this.endAddress=endAddress;
     }
     
     public static void decoder(String binary) {
@@ -116,6 +117,9 @@ public class Simulator {
     
 
     public void fetch() {
+    	if(this.pc>endAddress){
+    		return;
+    	}
     	int tempPc = this.pc;
         String binary = this.memory.get(pc); // fetch the instruction from
 
@@ -606,6 +610,9 @@ public class Simulator {
     }
   
   public void fetch_single() {
+    	if(this.pc>endAddress){
+    		return;
+    	}
     	int tempPc = this.pc;
         String binary = this.memory.get(pc); // fetch the instruction from
 
