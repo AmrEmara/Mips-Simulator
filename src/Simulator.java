@@ -190,7 +190,7 @@ public class Simulator {
         if (binary.get("memoryRead").equals("1")) {
             data = memory.get(address);
             toWrite.put("result", binary.get("result"));
-            toWrite.put("memoryToRegister", "1");
+            toWrite.put("memoryToRegister", "0");
             toWrite.put("rd", binary.get("rd"));
             toWrite.put("data", data);
             // writeBack
@@ -201,7 +201,7 @@ public class Simulator {
         } else {
             data = "00000000000000000000000000000000";
             toWrite.put("result", binary.get("result"));
-            toWrite.put("memoryToRegister", "0");
+            toWrite.put("memoryToRegister", "1");
             toWrite.put("data", data);
             toWrite.put("rd", binary.get("rd"));
             // writeBack
