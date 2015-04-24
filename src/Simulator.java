@@ -10,7 +10,7 @@ public class Simulator {
     public Simulator(HashMap<Integer, String> inputMemory , int pc) {
         // the key for the registerFile is the register number in binary
         registerFile = new HashMap<String, String>();
-        this.memory = new HashMap<Integer, String>();
+        this.memory = inputMemory;
         this.pc = pc;
     }
     
