@@ -605,6 +605,69 @@ public class Simulator {
         
     }
   
+  public void fetch_single() {
+    	int tempPc = this.pc;
+        String binary = this.memory.get(pc); // fetch the instruction from
+
+        // memory
+        String address;// to save the address part of the instruction
+        if (binary.startsWith("000100")) { // check if beq
+            address = binary.substring(16); // get the address part of the
+            // instruction
+            tempPc = Integer.parseInt(address, 2);// get the decimal value of
+            // the address and store it
+            // in tempPc
+        } else {
+            if (binary.startsWith("000101")) { // check if bne
+                address = binary.substring(16); // get the address part of the
+                // instruction
+                tempPc = Integer.parseInt(address, 2);// get the decimal value
+                // of the address and
+                // store it in tempPc
+            } else {
+                if (binary.startsWith("000010")) { // check if j
+                    address = binary.substring(6); // get the address part of
+                    // the instruction
+                    tempPc = Integer.parseInt(address, 2);// get the decimal
+                    // value of the
+                    // address and store
+                    // it in tempPc
+                } else {
+                    if (binary.startsWith("000011")) { // check if jal
+                        address = binary.substring(6); // get the address part
+                        // of the instruction
+                        registerFile.put("00000000000000000000000000011111",
+                                         Integer.toBinaryString(tempPc));// save tempPc
+                        // value in ra
+                        // register
+                        tempPc = Integer.parseInt(address, 2);// get the decimal
+                        // value of the
+                        // address and
+                        // store it in
+                        // tempPc
+                    } else {
+                        if (binary.startsWith("000000")
+                            && binary.substring(11).equals(
+                                                           "000000000000000001000")) { // check
+                            // if
+                            // jr
+                            tempPc = Integer.parseInt(
+                                                      registerFile.get("11111"), 2);// load the
+                            // value of
+                            // ra
+                            // register
+                            // in tempPc
+                        } else {
+                            tempPc = tempPc + 4;
+                        }
+                    }
+                }
+            }
+        }
+        this.pc = tempPc;
+        decoder(binary); // return the instruction
+    }
+  
     public static void main(String[] args) {
         //Simulator sim = new Simulator();
         
