@@ -69,20 +69,39 @@ public class Simulator {
         // memory
         String address;// to save the address part of the instruction
         if (binary.startsWith("000100")) { // check if beq
+            address = binary.substring(16); // get the address part of the
+            // instruction
+            tempPc = tempPc+Integer.parseInt(address, 2);// get the decimal value of
             address = binary.substring(16); // get the address part of the instruction
             tempPc = Integer.parseInt(address, 2);// get the decimal value of
             // the address and store it
             // in tempPc
+            this.pc = tempPc;
+            fetch();
+            return;
         } else {
             if (binary.startsWith("000101")) { // check if bne
-                address = binary.substring(16); // get the address part of the instruction
-                tempPc = Integer.parseInt(address, 2);// get the decimal value
-                // of the address and store it in tempPc
+                address = binary.substring(16); // get the address part of the
+                // instruction
+                tempPc = tempPc+Integer.parseInt(address, 2);// get the decimal value
+                // of the address and
+                // store it in tempPc
+                this.pc = tempPc;
+                fetch();
+                return;
             } else {
                 if (binary.startsWith("000010")) { // check if j
                     address = binary.substring(6); // get the address part of
                     // the instruction
+                    String x =Integer.toBinaryString(tempPc);
+                    address= x.substring(0,3)+address+"00";
                     tempPc = Integer.parseInt(address, 2);// get the decimal
+                    // value of the
+                    // address and store
+                    // it in tempPc
+                    this.pc = tempPc;
+                    fetch();
+                    return;
                     // value of the address and store it in tempPc
                 } else {
                     if (binary.startsWith("000011")) { // check if jal
@@ -92,11 +111,16 @@ public class Simulator {
                                          Integer.toBinaryString(tempPc));// save tempPc
                         // value in ra
                         // register
+                        String x =Integer.toBinaryString(tempPc);
+                        address= x.substring(0,3)+address+"00";
                         tempPc = Integer.parseInt(address, 2);// get the decimal
                         // value of the
                         // address and
                         // store it in
                         // tempPc
+                        this.pc = tempPc;
+                        fetch();
+                        return;
                     } else {
                         if (binary.startsWith("000000")
                             && binary.substring(11).equals(
@@ -109,6 +133,9 @@ public class Simulator {
                             // ra
                             // register
                             // in tempPc
+                            this.pc = tempPc;
+                            fetch();
+                            return;
                         } else {
                             tempPc = tempPc + 4;
                         }
