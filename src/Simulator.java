@@ -11,10 +11,118 @@ public class Simulator {
         // the key for the registerFile is the register number in binary
         registerFile = new HashMap<String, String>();
         this.memory = inputMemory;
+//        System.out.println(memory.get(pc));
+        
         this.pc = pc;
         this.endAddress=endAddress;
+        
+        registerFile.put("00000", "00000000000000000000000000000000");
+        registerFile.put("00001", "00000000000000000000000000000000");
+        registerFile.put("00010", "00000000000000000000000000000000");
+        registerFile.put("00011", "00000000000000000000000000000000");
+        registerFile.put("00100", "00000000000000000000000000000000");
+        registerFile.put("00101", "00000000000000000000000000000000");
+        registerFile.put("00110", "00000000000000000000000000000000");
+        registerFile.put("00111", "00000000000000000000000000000000");
+        registerFile.put("01000", "00000000000000000000000000000000");
+        registerFile.put("01001", "00000000000000000000000000000000");
+        registerFile.put("01010", "00000000000000000000000000000000");
+        registerFile.put("01011", "00000000000000000000000000000000");
+        registerFile.put("01100", "00000000000000000000000000000000");
+        registerFile.put("01101", "00000000000000000000000000000000");
+        registerFile.put("01110", "00000000000000000000000000000000");
+        registerFile.put("01111", "00000000000000000000000000000000");
+        registerFile.put("10000", "00000000000000000000000000000000");
+        registerFile.put("10001", "00000000000000000000000000000001");
+        registerFile.put("10010", "00000000000000000000000000000000");
+        registerFile.put("10011", "00000000000000000000000000000000");
+        registerFile.put("10100", "00000000000000000000000000000000");
+        registerFile.put("10101", "00000000000000000000000000000000");
+        registerFile.put("10110", "00000000000000000000000000000000");
+        registerFile.put("10111", "00000000000000000000000000000000");
+        registerFile.put("11000", "00000000000000000000000000000000");
+        registerFile.put("11001", "00000000000000000000000000000000");
+        registerFile.put("11101", "00000000000000000000000000000000");
+        registerFile.put("11111", "00000000000000000000000000000000");
+        
     }
-    
+    ////////////////////getters for register file and memory///////////////////////
+    public HashMap<String, String> getRegisterFile(){
+    	return this.registerFile;
+    }
+    public HashMap<Integer, String> getMemory(){
+    	return this.memory;
+    }
+    /////////////////////////////fetch/////////////////////////////////////////////
+    public void fetch() {
+        if(this.pc>endAddress){
+            return;
+        }
+        int tempPc = this.pc;
+        String binary = this.memory.get(pc); // fetch the instruction from
+        
+        // memory
+        String address;// to save the address part of the instruction
+        if (binary.startsWith("000100")) { // check if beq
+            address = binary.substring(16); // get the address part of the
+            // instruction
+            tempPc = Integer.parseInt(address, 2);// get the decimal value of
+            // the address and store it
+            // in tempPc
+        } else {
+            if (binary.startsWith("000101")) { // check if bne
+                address = binary.substring(16); // get the address part of the
+                // instruction
+                tempPc = Integer.parseInt(address, 2);// get the decimal value
+                // of the address and
+                // store it in tempPc
+            } else {
+                if (binary.startsWith("000010")) { // check if j
+                    address = binary.substring(6); // get the address part of
+                    // the instruction
+                    tempPc = Integer.parseInt(address, 2);// get the decimal
+                    // value of the
+                    // address and store
+                    // it in tempPc
+                } else {
+                    if (binary.startsWith("000011")) { // check if jal
+                        address = binary.substring(6); // get the address part
+                        // of the instruction
+                        registerFile.put("11111",
+                                         Integer.toBinaryString(tempPc));// save tempPc
+                        // value in ra
+                        // register
+                        tempPc = Integer.parseInt(address, 2);// get the decimal
+                        // value of the
+                        // address and
+                        // store it in
+                        // tempPc
+                    } else {
+                        if (binary.startsWith("000000")
+                            && binary.substring(11).equals(
+                                                           "000000000000000001000")) { // check
+                            // if
+                            // jr
+                            tempPc = Integer.parseInt(
+                                                      registerFile.get("11111"), 2);// load the
+                            // value of
+                            // ra
+                            // register
+                            // in tempPc
+                        } else {
+                            tempPc = tempPc + 4;
+                        }
+                    }
+                }
+            }
+        }
+        //System.out.println(binary);
+        this.pc = tempPc;
+        decoder(binary); // return the instruction
+        fetch();
+    }
+    /////////////////////////////decode/////////////////////////////////////////////
+
     public void decoder(String binary) {
         String rs, rt, rd;
         HashMap<String, String> out = new HashMap<String, String>();
@@ -52,12 +160,14 @@ public class Simulator {
             out.put("rt", rt);
             out.put("shamt", binary.substring(21, 26));
             out.put("funct", binary.substring(26));
-        } else if (binary.startsWith("000010") || binary.startsWith("000011"))
+        } 
+        else if (binary.startsWith("000010") || binary.startsWith("000011"))
             // if J-format ,sends back the address.
         {
             
             out.put("address", binary.substring(6));
-        } else
+        }
+        else
             // if I-format sends back the value of reg,destination ,constant/adress.
         {
             // format ="I";
@@ -79,7 +189,7 @@ public class Simulator {
                 out.put("Branch", "0");
                 out.put("ALUOp", "00");
             } else if (binary.startsWith("100011") || binary.startsWith("100000") ||
-                       binary.startsWith("100100") || binary.startsWith("001111")) {
+                       binary.startsWith("100100")) {
                 // if it's load word,set control signals.
                 out.put("RegDst", "0");
                 out.put("ALUSrc", "1");
@@ -89,6 +199,17 @@ public class Simulator {
                 out.put("MemWrite", "0");
                 out.put("Branch", "0");
                 out.put("ALUOp", "00");
+            } else if(binary.startsWith("001111")){
+            	// lui 
+            	out.put("RegDst", "0");
+                out.put("ALUSrc", "1");
+                out.put("MemtoReg", "1");
+                out.put("RegWrite", "1");
+                out.put("MemRead", "0");
+                out.put("MemWrite", "0");
+                out.put("Branch", "0");
+                out.put("ALUOp", "00");
+            	
             } else if (binary.startsWith("101011") || binary.startsWith("101000") ) {
                 // if it's save word,set control signals.
                 out.put("RegDst", "X");
@@ -115,98 +236,137 @@ public class Simulator {
         
     }
     
-    
-    public void fetch() {
-        if(this.pc>endAddress){
-            return;
-        }
-        int tempPc = this.pc;
-        String binary = this.memory.get(pc); // fetch the instruction from
+    /////////////////////////////execute/////////////////////////////////////////////
+    // when a load control signal is received the opcode is checked and flags
+    // added to tell
+    // if this is a lw or lb instruction.
+  
+    public void Execute(HashMap<String, String> in) {
+    	System.out.println("ana hena");
+    	HashMap<String, String> ExMem = new HashMap<String, String>();
+        String out = "";
+        ExMem.put("MemtoReg", (String) in.get("MemtoReg"));
+        ExMem.put("RegWrite", (String) in.get("RegWrite"));
+        ExMem.put("MemRead", (String) in.get("MemRead"));
+        ExMem.put("MemWrite", (String) in.get("MemWrite"));
+        ExMem.put("RegWrite", (String) in.get("RegWrite"));
+        ExMem.put("Branch", (String) in.get("Branch"));
+        ExMem.put("lb", "0");
+        ExMem.put("lbu", "0");
+        ExMem.put("lui", "0");
+        ExMem.put("sb", "0");
         
-        // memory
-        String address;// to save the address part of the instruction
-        if (binary.startsWith("000100")) { // check if beq
-            address = binary.substring(16); // get the address part of the
-            // instruction
-            tempPc = Integer.parseInt(address, 2);// get the decimal value of
-            // the address and store it
-            // in tempPc
-        } else {
-            if (binary.startsWith("000101")) { // check if bne
-                address = binary.substring(16); // get the address part of the
-                // instruction
-                tempPc = Integer.parseInt(address, 2);// get the decimal value
-                // of the address and
-                // store it in tempPc
-            } else {
-                if (binary.startsWith("000010")) { // check if j
-                    address = binary.substring(6); // get the address part of
-                    // the instruction
-                    tempPc = Integer.parseInt(address, 2);// get the decimal
-                    // value of the
-                    // address and store
-                    // it in tempPc
-                } else {
-                    if (binary.startsWith("000011")) { // check if jal
-                        address = binary.substring(6); // get the address part
-                        // of the instruction
-                        registerFile.put("00000000000000000000000000011111",
-                                         Integer.toBinaryString(tempPc));// save tempPc
-                        // value in ra
-                        // register
-                        tempPc = Integer.parseInt(address, 2);// get the decimal
-                        // value of the
-                        // address and
-                        // store it in
-                        // tempPc
-                    } else {
-                        if (binary.startsWith("000000")
-                            && binary.substring(11).equals(
-                                                           "000000000000000001000")) { // check
-                            // if
-                            // jr
-                            tempPc = Integer.parseInt(
-                                                      registerFile.get("11111"), 2);// load the
-                            // value of
-                            // ra
-                            // register
-                            // in tempPc
-                        } else {
-                            tempPc = tempPc + 4;
-                        }
-                    }
-                }
-            }
-        }
-        this.pc = tempPc;
-        decoder(binary); // return the instruction
-        fetch();
-    }
-    
-    public void memor(HashMap<String, String> binary) {
-        HashMap<String, String> toWrite = new HashMap<String, String>();
-        String data;
-        int address = (int) Integer.parseInt(binary.get("result"), 2);
-        if (binary.get("memoryRead").equals("1")) {
-            data = memory.get(address);
-            toWrite.put("result", binary.get("result"));
-            toWrite.put("memoryToRegister", "0");
-            toWrite.put("rd", binary.get("rd"));
-            toWrite.put("data", data);
-            // writeBack
-        } else if (binary.get("memoryWrite").equals("1")) {
-            data = binary.get("data");
-            memory.put(address, data);
+        String controlSignals = "";
+        String ALUfunc = "";
+        String rFunc = "";
+        controlSignals += in.get("RegDst");//
+        controlSignals += in.get("ALUSrc");//
+        controlSignals += in.get("MemtoReg");
+        controlSignals += in.get("RegWrite");
+        controlSignals += in.get("MemRead");
+        controlSignals += in.get("MemWrite");
+        controlSignals += in.get("Branch");
+        controlSignals += in.get("ALUOp");//
+        
+        // This portion checks if the control signals provided from the decode
+        // register
+        // are those of an R-formtat. If it is identified as R-format then
+        // we take the function bits passed form the decode stage to determone
+        // the type
+        // of operation to be performed and calls the correct function to
+        // perform this
+        // operation. The result is put in the Ex/Mem register with name =
+        // "result"
+        // This result should be saved in the address provided in the rd of this
+        // instruction
+        // this is taken from decode stage and passed to the write back stage
+        // with
+        // the name = "destinationRegister".
+        if (controlSignals.equals("100100010")) {
+            System.out.println("3erf eno r-format");
+            ALUfunc = getFunction((String) in.get("funct"));
+            out = operation(ALUfunc, (String) in.get("rs"),
+                            (String) in.get("rt"), (String) in.get("shamt"));
+            ExMem.put("result", out);
+            ExMem.put("destinationRegister", (String) in.get("rd"));
             
         } else {
-            data = "00000000000000000000000000000000";
-            toWrite.put("result", binary.get("result"));
-            toWrite.put("memoryToRegister", "1");
-            toWrite.put("data", data);
-            toWrite.put("rd", binary.get("rd"));
-            // writeBack
+            // This means that this a load instruction.
+            // for all cases: lw,lb, lbu, lui
+            // we will calculate the address of the instruction in memory by
+            // summing the offset and contents inside the address passed in the
+            // rs register of this instruction.
+            // This portion calculates the address that we want to load and puts
+            // it in the register with name = "result". The data should be loaded in
+            // the register rt provided in the instruction, this is passed to the
+            // write back stage
+            // with name = "destinationRegister"
+            if (controlSignals.equals("011110000")) {
+                String op = (String) in.get("opCode");
+                out = binaryAdd((String) in.get("rs"),
+                                (String) in.get("offset"));
+                // adds offset to rs to get address to be loaded
+                if (op.equals("100000")) { // instruction
+                    System.out.println("3erf lb");
+                    ExMem.put("lb", "1");
+                    
+                } else {
+                    if (op.equals("100100")) {
+                        System.out.println("3erf lbu");
+                        ExMem.put("lbu", "1");
+                        
+                    } else {
+                        System.out.println("3mlha lw");
+
+                    }
+                    
+                    ExMem.put("destinationRegister", (String) in.get("rt"));
+                }
+            } else {
+                // This is for save instructions, the address is calculated by adding
+                // the contents of the rs and offset then placed in register with tag
+                // result. The data in register rt should be saved in the address
+                // calculated.
+                if (controlSignals.equals("X1X001000")) {
+                    String op = (String) in.get("opCode");
+                    if(op.equals("101000")){
+                        ExMem.put("sb", "1");
+                    }
+                    out = binaryAdd((String) in.get("rs"),
+                                    (String) in.get("offset"));
+                    ExMem.put("writeData", (String) in.get("rt"));
+                    
+                } else {
+                	if(controlSignals.equals("011100000")){
+                		//lui instruction
+                		System.out.println("3erf lui");
+                        ExMem.put("lui", "1");
+                        out = (String) in.get("offset");
+                	}
+                	else{
+                    // This part is for addi instructions. The offset is
+                    // added to the content of rs and the result should
+                    // be put in the address inside the rt register.
+                		
+                    System.out.println("el mfrood keda addi");
+                    System.out.println("opcode :"+in.get("opCode"));
+                    String immediate = (String)in.get("offset");
+                    System.out.println("immediate :"+immediate);
+                    System.out.println("rs :"+in.get("rs"));
+                    out = binaryAdd((String)in.get("rs"), immediate);
+                    System.out.println("output:" +out);
+                    ExMem.put("destinationRegister", (String) in.get("rt"));
+                    ExMem.put("result", out);
+                	}
+                }
+            }
+            
         }
+        ExMem.put("result", out);
+        System.out.println(ExMem.toString());
+        memor(ExMem);
     }
+    ///////////////////////////helpers for execute/////////////////////////////////////
     public static int binaryToDecimal(String s) {
         if (s.charAt(0) == '1') {
             return twosComp(s);
@@ -362,126 +522,7 @@ public class Simulator {
         return s;
     }
     
-    // when a load control signal is received the opcode is checked and flags
-    // added to tell
-    // if this is a lw or lb instruction.
-    public void Execute(HashMap<String, String> in) {
-        HashMap<String, String> ExMem = new HashMap<String, String>();
-        String out = "";
-        ExMem.put("MemtoReg", (String) in.get("MemtoReg"));
-        ExMem.put("RegWrite", (String) in.get("RegWrite"));
-        ExMem.put("MemRead", (String) in.get("MemRead"));
-        ExMem.put("MemWrite", (String) in.get("MemWrite"));
-        ExMem.put("RegWrite", (String) in.get("RegWrite"));
-        ExMem.put("Branch", (String) in.get("Branch"));
-        ExMem.put("lb", "0");
-        ExMem.put("lbu", "0");
-        ExMem.put("lui", "0");
-        ExMem.put("sb", "0");
-        
-        String controlSignals = "";
-        String ALUfunc = "";
-        String rFunc = "";
-        controlSignals += in.get("RegDst");//
-        controlSignals += in.get("ALUSrc");//
-        controlSignals += in.get("MemtoReg");
-        controlSignals += in.get("RegWrite");
-        controlSignals += in.get("MemRead");
-        controlSignals += in.get("MemWrite");
-        controlSignals += in.get("Branch");
-        controlSignals += in.get("ALUOp");//
-        
-        // This portion checks if the control signals provided from the decode
-        // register
-        // are those of an R-formtat. If it is identified as R-format then
-        // we take the function bits passed form the decode stage to determone
-        // the type
-        // of operation to be performed and calls the correct function to
-        // perform this
-        // operation. The result is put in the Ex/Mem register with name =
-        // "result"
-        // This result should be saved in the address provided in the rd of this
-        // instruction
-        // this is taken from decode stage and passed to the write back stage
-        // with
-        // the name = "destinationRegister".
-        if (controlSignals.equals("100100010")) {
-            System.out.println("3erf eno r-format");
-            ALUfunc = getFunction((String) in.get("funct"));
-            out = operation(ALUfunc, (String) in.get("rs"),
-                            (String) in.get("rt"), (String) in.get("shamt"));
-            ExMem.put("result", out);
-            ExMem.put("destinationRegister", (String) in.get("rd"));
-            
-        } else {
-            // This means that this a load instruction.
-            // for all cases: lw,lb, lbu, lui
-            // we will calculate the address of the instruction in memory by
-            // summing the offset and contents inside the address passed in the
-            // rs register of this instruction.
-            // This portion calculates the address that we want to load and puts
-            // it in the register with name = "result". The data should be loaded in
-            // the register rt provided in the instruction, this is passed to the
-            // write back stage
-            // with name = "destinationRegister"
-            if (controlSignals.equals("011110000")) {
-                String op = (String) in.get("opCode");
-                out = binaryAdd((String) in.get("rs"),
-                                (String) in.get("offset"));
-                // adds offset to rs to get address to be loaded
-                if (op.equals("100000")) { // instruction
-                    System.out.println("3erf lb");
-                    ExMem.put("lb", "1");
-                    
-                } else {
-                    if (op.equals("100100")) {
-                        System.out.println("3erf lbu");
-                        ExMem.put("lbu", "1");
-                        
-                    } else {
-                        if (op.equals("001111")) {
-                            System.out.println("3erf lbi");
-                            ExMem.put("lui", "1");
-                            out = (String) in.get("offset");
-                        }else {
-                            System.out.println("3mlha lw");
-                        }
-                    }
-                    
-                    ExMem.put("destinationRegister", (String) in.get("rt"));
-                }
-            } else {
-                // This is for save instructions, the address is calculated by adding
-                // the contents of the rs and offset then placed in register with tag
-                // result. The data in register rt should be saved in the address
-                // calculated.
-                if (controlSignals.equals("X1X001000")) {
-                    String op = (String) in.get("opCode");
-                    if(op.equals("101000")){
-                        ExMem.put("sb", "1");
-                    }
-                    out = binaryAdd((String) in.get("rs"),
-                                    (String) in.get("offset"));
-                    ExMem.put("writeData", (String) in.get("rt"));
-                    
-                } else {
-                    // This part is for addi instructions. The offset is
-                    // added to the content of rs and the result should
-                    // be put in the address inside the rt register.
-                    System.out.println("el mfrood keda addi");
-                    String immediate = (String) in.get("offset");
-                    out = binaryAdd((String) in.get("rs"), immediate);
-                    ExMem.put("destinationRegister", (String) in.get("rt"));
-                    ExMem.put("result", out);
-                    
-                }
-            }
-            
-        }
-        ExMem.put("result", out);
-        System.out.println(ExMem.toString());
-        memor(ExMem);
-    }
+    
     
     public static String operation(String ALUControl, String arg1, String arg2, String shift) {
         String result = "";
@@ -594,112 +635,168 @@ public class Simulator {
         return -Integer.parseInt(s, 2);
     }
     
-    public static void WriteBack(){
-        if (MEMWB.getReadRegWrite() == 1) {
-            // checks if ALU is over and write signal is ready
-            if (MEMWB.getMemtoReg() == 0) {
-                // case if writing in a reg from ALU
-                regs[MEMWB.getReadWriteRegister()] = MEMWB.getReadALUresult();
-                
-            } else if (MEMWB.getMemtoReg() == 1) {
-                // case if writing in a reg from MEM
-                regs[MEMWB.getReadWriteRegister()] = MEMWB.getReadData();
-            }
+    
+    
+//    public void fetch_single() {
+//        if(this.pc>endAddress){
+//            return;
+//        }
+//        int tempPc = this.pc;
+//        String binary = this.memory.get(pc); // fetch the instruction from
+//        
+//        // memory
+//        String address;// to save the address part of the instruction
+//        if (binary.startsWith("000100")) { // check if beq
+//            address = binary.substring(16); // get the address part of the
+//            // instruction
+//            tempPc = Integer.parseInt(address, 2);// get the decimal value of
+//            // the address and store it
+//            // in tempPc
+//        } else {
+//            if (binary.startsWith("000101")) { // check if bne
+//                address = binary.substring(16); // get the address part of the
+//                // instruction
+//                tempPc = Integer.parseInt(address, 2);// get the decimal value
+//                // of the address and
+//                // store it in tempPc
+//            } else {
+//                if (binary.startsWith("000010")) { // check if j
+//                    address = binary.substring(6); // get the address part of
+//                    // the instruction
+//                    tempPc = Integer.parseInt(address, 2);// get the decimal
+//                    // value of the
+//                    // address and store
+//                    // it in tempPc
+//                } else {
+//                    if (binary.startsWith("000011")) { // check if jal
+//                        address = binary.substring(6); // get the address part
+//                        // of the instruction
+//                        registerFile.put("00000000000000000000000000011111",
+//                                         Integer.toBinaryString(tempPc));// save tempPc
+//                        // value in ra
+//                        // register
+//                        tempPc = Integer.parseInt(address, 2);// get the decimal
+//                        // value of the
+//                        // address and
+//                        // store it in
+//                        // tempPc
+//                    } else {
+//                        if (binary.startsWith("000000")
+//                            && binary.substring(11).equals(
+//                                                           "000000000000000001000")) { // check
+//                            // if
+//                            // jr
+//                            tempPc = Integer.parseInt(
+//                                                      registerFile.get("11111"), 2);// load the
+//                            // value of
+//                            // ra
+//                            // register
+//                            // in tempPc
+//                        } else {
+//                            tempPc = tempPc + 4;
+//                        }
+//                    }
+//                }
+//            }
+//        }
+//        this.pc = tempPc;
+//        decoder(binary); // return the instruction
+//    }
+    
+    
+    ///////////////////////////memory/////////////////////////////////////////////
+    public void memor(HashMap<String, String> binary) {
+    		
+    	System.out.println("ana hena");
+//        ExMem.put("MemRead", (String) in.get("MemRead"));
+//        ExMem.put("MemWrite", (String) in.get("MemWrite"));
+//  	  ExMem.put("MemtoReg", (String) in.get("MemtoReg"));
+//    	  ExMem.put("RegWrite", (String) in.get("RegWrite"));
+//        ExMem.put("lb", "0");
+//        ExMem.put("lbu", "0");
+//        ExMem.put("lui", "0");
+//        ExMem.put("sb", "0");
+//    	  ExMem.put("result", out);
+//        ExMem.put("destinationRegister", (String) in.get("rd"));
+//        ExMem.put("writeData", (String) in.get("rt"));
+
+    	HashMap<String, String> toWrite = new HashMap<String, String>();
+        String data;
+        int address;
+        if (binary.get("MemRead").equals("1")) { //load instruction
+        	address = Integer.parseInt(binary.get("result"), 2);
+            data = memory.get(address);
+        	if(binary.get("lb").equals("1")){ //lb instruction
+        		data = "000000000000000000000000"+data.substring(24);
+        	}
+        	if(binary.get("lbu").equals("1")){ //lbu instruction
+        		data = signExtendor(data.substring(24));
+        	}
+        	
+            toWrite.put("result", binary.get("result"));
+            toWrite.put("MemtoReg", binary.get("MemtoReg"));
+            toWrite.put("RegWrite", binary.get("RegWrite"));
+            toWrite.put("destinationRegister", binary.get("destinationRegister"));
+            toWrite.put("data", data);
+            toWrite.put("lui",binary.get("lui"));
+            // writeBack
+        } else if (binary.get("MemWrite").equals("1")) { //store instruction
+        	
+        	address = Integer.parseInt(binary.get("result"), 2);
+        	data = binary.get("writeData");
+        	if(binary.get("sb").equals("1")){ //sb instruction
+        		data = "000000000000000000000000"+data.substring(24);
+        	}
+            memory.put(address, data);
+            //in this case Values for MemtoReg and RegWrite will be X (don't cares)
+            toWrite.put("result", binary.get("result"));
+            toWrite.put("MemtoReg", binary.get("MemtoReg"));
+            toWrite.put("RegWrite", binary.get("RegWrite"));
+            toWrite.put("destinationRegister", "00000");
+            toWrite.put("data", data);
+            toWrite.put("lui",binary.get("lui"));
+            
+        } else { //ALU instruction
+            data = "00000000000000000000000000000000";
+            toWrite.put("result", binary.get("result"));
+            toWrite.put("MemtoReg", binary.get("MemtoReg"));
+            toWrite.put("RegWrite", binary.get("RegWrite"));
+            toWrite.put("destinationRegister", binary.get("destinationRegister"));
+            toWrite.put("data", data);
+            toWrite.put("lui",binary.get("lui"));
+            // writeBack
         }
+        WriteBack(toWrite);
     }
-    
-    
-    
-    public void fetch_single() {
-        if(this.pc>endAddress){
-            return;
-        }
-        int tempPc = this.pc;
-        String binary = this.memory.get(pc); // fetch the instruction from
-        
-        // memory
-        String address;// to save the address part of the instruction
-        if (binary.startsWith("000100")) { // check if beq
-            address = binary.substring(16); // get the address part of the
-            // instruction
-            tempPc = Integer.parseInt(address, 2);// get the decimal value of
-            // the address and store it
-            // in tempPc
-        } else {
-            if (binary.startsWith("000101")) { // check if bne
-                address = binary.substring(16); // get the address part of the
-                // instruction
-                tempPc = Integer.parseInt(address, 2);// get the decimal value
-                // of the address and
-                // store it in tempPc
-            } else {
-                if (binary.startsWith("000010")) { // check if j
-                    address = binary.substring(6); // get the address part of
-                    // the instruction
-                    tempPc = Integer.parseInt(address, 2);// get the decimal
-                    // value of the
-                    // address and store
-                    // it in tempPc
-                } else {
-                    if (binary.startsWith("000011")) { // check if jal
-                        address = binary.substring(6); // get the address part
-                        // of the instruction
-                        registerFile.put("00000000000000000000000000011111",
-                                         Integer.toBinaryString(tempPc));// save tempPc
-                        // value in ra
-                        // register
-                        tempPc = Integer.parseInt(address, 2);// get the decimal
-                        // value of the
-                        // address and
-                        // store it in
-                        // tempPc
-                    } else {
-                        if (binary.startsWith("000000")
-                            && binary.substring(11).equals(
-                                                           "000000000000000001000")) { // check
-                            // if
-                            // jr
-                            tempPc = Integer.parseInt(
-                                                      registerFile.get("11111"), 2);// load the
-                            // value of
-                            // ra
-                            // register
-                            // in tempPc
-                        } else {
-                            tempPc = tempPc + 4;
-                        }
-                    }
-                }
-            }
-        }
-        this.pc = tempPc;
-        decoder(binary); // return the instruction
-    }
-     public void WriteBack(HashMap<String, String> binary) {
+
+    ///////////////////////////write back////////////////////////////////////////////
+    public void WriteBack(HashMap<String, String> binary) {
 		
-		 
-    	if (binary.get("memoryToRegister").equals("1")){ 
+    	System.out.println("ana hena"); 
+    	if (binary.get("MemtoReg").equals("0")){ 
     		// this if condition to check whether to add from memory or register, and in this case ALU
     		
-    		if(binary.get("UpperI").equals("1")){
+    		if(binary.get("lui").equals("1")){
     			// this if handles case of load upper immediate
     			
     			String tmp = binary.get("result").substring(16)+"0000000000000000";
-    			this.registerFile.put(binary.get("rd"),tmp);
+    			this.registerFile.put(binary.get("destinationRegister"),tmp);
     			// we substring the last 16 bits from the register and then we add 16 0's, aka 32 bits, then add it to rd
     		}
     		else{
     			// this case we add to the register the value from the ALU
-    			this.registerFile.put(binary.get("rd"),binary.get("result"));
+    			
+    			this.registerFile.put(binary.get("destinationRegister"),binary.get("result"));
     		}
     	}
 		else{
 			// this case we add the value from the Memory to the register 
-			this.registerFile.put(binary.get("rd"),binary.get("data"));
+			this.registerFile.put(binary.get("destinationRegister"),binary.get("data"));
 		}
 			 
 	}
-    
+
+    ///////////////////////////main//////////////////////////////////////////////
     public static void main(String[] args) {
         //Simulator sim = new Simulator();
         

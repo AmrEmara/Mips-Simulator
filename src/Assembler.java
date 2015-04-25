@@ -11,7 +11,7 @@ import javax.imageio.stream.MemoryCacheImageInputStream;
 
 public class Assembler {
 	HashMap<Integer, String> memory;
-	int pc ;
+	int pc , endAddress;
 
 	public Assembler(File file) throws IOException{
 		//key for memory is the address of instruction/data
@@ -182,7 +182,7 @@ public class Assembler {
 				instAddress +=4;
 				line = br.readLine();
 			}
-			
+			endAddress = instAddress-4;
 		}
 		br.close();
 	}	
@@ -266,7 +266,11 @@ public class Assembler {
 		String x = "prog1";
 		File file = new File(x);
 		Assembler a = new Assembler(file);
-		System.out.println(a.memory.get(178));
+		
+		Simulator s = new Simulator(a.memory,a.pc,a.endAddress);
+		s.fetch();
+		System.out.println(s.getRegisterFile().get("10001"));
+		
 	}
 		
 }

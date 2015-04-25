@@ -44,16 +44,18 @@ public class Test {
 //		for(int l = 0;l<output.length;l++){
 //			System.out.println(output[l]);
 //		}
-		String a= "{100,200,300,400}";
-		String x = "";
-		int i = 1;
-		while(a.charAt(i)!='}'){
-			x+=a.charAt(i);
-			i++;
-		}
-		System.out.println(x);
-		String[] y = x.split(",");
-		System.out.println(y[4]);
+//		String a= "{100,200,300,400}";
+//		String x = "";
+//		int i = 1;
+//		while(a.charAt(i)!='}'){
+//			x+=a.charAt(i);
+//			i++;
+//		}
+//		System.out.println(x);
+//		String[] y = x.split(",");
+//		System.out.println(y[4]);
+		String x = "000000000000000000000000";
+		System.out.println(x.length());		
 		
 	}
 
