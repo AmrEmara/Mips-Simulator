@@ -60,7 +60,8 @@ public class Simulator {
     }
     /////////////////////////////fetch/////////////////////////////////////////////
     public void fetch() {
-        if(this.pc>endAddress){
+        boolean f=false;
+    	if(this.pc>endAddress){
             return;
         }
         int tempPc = this.pc;
@@ -76,9 +77,7 @@ public class Simulator {
             tempPc = Integer.parseInt(address, 2);// get the decimal value of
             // the address and store it
             // in tempPc
-            this.pc = tempPc;
-            fetch();
-            return;
+            f=true;
         } else {
             if (binary.startsWith("000101")) { // check if bne
                 address = binary.substring(16); // get the address part of the
@@ -86,9 +85,7 @@ public class Simulator {
                 tempPc = tempPc+Integer.parseInt(address, 2);// get the decimal value
                 // of the address and
                 // store it in tempPc
-                this.pc = tempPc;
-                fetch();
-                return;
+                f=true;
             } else {
                 if (binary.startsWith("000010")) { // check if j
                     address = binary.substring(6); // get the address part of
@@ -99,10 +96,7 @@ public class Simulator {
                     // value of the
                     // address and store
                     // it in tempPc
-                    this.pc = tempPc;
-                    fetch();
-                    return;
-                    // value of the address and store it in tempPc
+                    f=true;
                 } else {
                     if (binary.startsWith("000011")) { // check if jal
                         address = binary.substring(6); // get the address part
@@ -118,9 +112,7 @@ public class Simulator {
                         // address and
                         // store it in
                         // tempPc
-                        this.pc = tempPc;
-                        fetch();
-                        return;
+                        f=true;
                     } else {
                         if (binary.startsWith("000000")
                             && binary.substring(11).equals(
@@ -133,9 +125,7 @@ public class Simulator {
                             // ra
                             // register
                             // in tempPc
-                            this.pc = tempPc;
-                            fetch();
-                            return;
+                            f=true;
                         } else {
                             tempPc = tempPc + 4;
                         }
@@ -151,6 +141,7 @@ public class Simulator {
         System.out.println();
         this.pc = tempPc;
         this.cycleNo++;
+        if(!f)
         decoder(binary); // return the instruction
         if (!single_path)
             fetch();
