@@ -860,7 +860,7 @@ public class Simulator {
                 }
                 else {
                     if(binary.get("lui").equals("1")){
-                        String s = binary.get("resut") + "0000000000000000";
+                        String s = binary.get("result") + "0000000000000000";
                         this.registerFile.put(binary.get("destinationRegister"),s);
                     }
                     else {
