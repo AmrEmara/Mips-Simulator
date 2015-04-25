@@ -33,10 +33,10 @@ public class Simulator {
         registerFile.put("01110", "00000000000000000000000000000000");	// $t6
         registerFile.put("01111", "00000000000000000000000000000000");	// $t7
         registerFile.put("10000", "00000000000000000000000000000000");	// $s0
-        registerFile.put("10001", "00000000000000000000000000000001");	// $s1
+        registerFile.put("10001", "00000000000000000000000000000000");	// $s1
         registerFile.put("10010", "00000000000000000000000000000000");	// $s2
         registerFile.put("10011", "00000000000000000000000000000000");	// $s3
-        registerFile.put("10100", "00000000000000000000000000000100");	// $s4
+        registerFile.put("10100", "00000000000000000000000000000000");	// $s4
         registerFile.put("10101", "00000000000000000000000000000000");	// $s5
         registerFile.put("10110", "00000000000000000000000000000000");	// $s6
         registerFile.put("10111", "00000000000000000000000000000000");	// $s7
@@ -123,9 +123,11 @@ public class Simulator {
         System.out.println("instruction = " + binary);
         System.out.println();
         this.pc = tempPc;
+        this.cycleNo++;
         decoder(binary); // return the instruction
         if (!single_path)
-        fetch();
+            fetch();
+        
     }
     /////////////////////////////decode/////////////////////////////////////////////
     
@@ -720,7 +722,7 @@ public class Simulator {
         int address;
         if (binary.get("MemRead").equals("1")) { //load instruction
             address = Integer.parseInt(binary.get("result"), 2);
-            data = memory.get(address);
+            data = this.memory.get(address);
             if(binary.get("lb").equals("1")){ //lb instruction
                 data = "000000000000000000000000"+data.substring(24);
             }
@@ -738,17 +740,19 @@ public class Simulator {
         } else if (binary.get("MemWrite").equals("1")) { //store instruction
             
             address = Integer.parseInt(binary.get("result"), 2);
-            data = binary.get("writeData");
+            data = binaryToDecimal(registerFile.get((binary.get("writeData")))) + "";
+            toWrite.put("addressForStore",address +"");
+            
             if(binary.get("sb").equals("1")){ //sb instruction
                 data = "000000000000000000000000"+data.substring(24);
             }
-            memory.put(address, data);
+            this.memory.put(address, data);
             //in this case Values for MemtoReg and RegWrite will be X (don't cares)
             toWrite.put("result", binary.get("result"));
             toWrite.put("MemtoReg", binary.get("MemtoReg"));
             toWrite.put("RegWrite", binary.get("RegWrite"));
             toWrite.put("destinationRegister", "00000");
-            toWrite.put("data", data);
+            toWrite.put("data", registerFile.get(data));
             toWrite.put("lui",binary.get("lui"));
             
         } else { //ALU instruction
@@ -788,12 +792,14 @@ public class Simulator {
             }
         }
         else{
-            // this case we add the value from the Memory to the register 
-            this.registerFile.put(binary.get("destinationRegister"),binary.get("data"));
+            if(!binary.get("MemtoReg").equals("X")){
+                // this case we add the value from the Memory to the register
+                this.registerFile.put(binary.get("destinationRegister"),decimalToBinary(Integer.parseInt(binary.get("data"))));
+            }
         }
         
         System.out.println("==========================================================================");
         if (single_path)
-        fetch();
+            fetch();
     }
 }
