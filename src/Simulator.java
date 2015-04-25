@@ -72,7 +72,7 @@ public class Simulator {
         if (binary.startsWith("000100")) { // check if beq
             address = binary.substring(16); // get the address part of the
             // instruction
-            tempPc = tempPc+Integer.parseInt(address, 2);// get the decimal value of
+            tempPc = tempPc+(short)Integer.parseInt(address, 2);// get the decimal value of
             address = binary.substring(16); // get the address part of the instruction
             tempPc = Integer.parseInt(address, 2);// get the decimal value of
             // the address and store it
@@ -82,7 +82,7 @@ public class Simulator {
             if (binary.startsWith("000101")) { // check if bne
                 address = binary.substring(16); // get the address part of the
                 // instruction
-                tempPc = tempPc+Integer.parseInt(address, 2);// get the decimal value
+                tempPc = tempPc+(short)Integer.parseInt(address, 2);// get the decimal value
                 // of the address and
                 // store it in tempPc
                 f=true;
