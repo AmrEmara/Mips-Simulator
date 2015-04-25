@@ -6,6 +6,7 @@ public class Simulator {
     static HashMap<String, String> registerFile;
     HashMap<Integer, String> memory;
     int pc, endAddress;
+    int cycleNo = 0;
     
     public Simulator(HashMap<Integer, String> inputMemory , int pc, int endAddress) {
         // the key for the registerFile is the register number in binary
@@ -16,34 +17,38 @@ public class Simulator {
         this.pc = pc;
         this.endAddress=endAddress;
         
-        registerFile.put("00000", "00000000000000000000000000000000");
-        registerFile.put("00001", "00000000000000000000000000000000");
-        registerFile.put("00010", "00000000000000000000000000000000");
-        registerFile.put("00011", "00000000000000000000000000000000");
-        registerFile.put("00100", "00000000000000000000000000000000");
-        registerFile.put("00101", "00000000000000000000000000000000");
-        registerFile.put("00110", "00000000000000000000000000000000");
-        registerFile.put("00111", "00000000000000000000000000000000");
-        registerFile.put("01000", "00000000000000000000000000000000");
-        registerFile.put("01001", "00000000000000000000000000000000");
-        registerFile.put("01010", "00000000000000000000000000000000");
-        registerFile.put("01011", "00000000000000000000000000000000");
-        registerFile.put("01100", "00000000000000000000000000000000");
-        registerFile.put("01101", "00000000000000000000000000000000");
-        registerFile.put("01110", "00000000000000000000000000000000");
-        registerFile.put("01111", "00000000000000000000000000000000");
-        registerFile.put("10000", "00000000000000000000000000000000");
-        registerFile.put("10001", "00000000000000000000000000000001");
-        registerFile.put("10010", "00000000000000000000000000000000");
-        registerFile.put("10011", "00000000000000000000000000000000");
-        registerFile.put("10100", "00000000000000000000000000000000");
-        registerFile.put("10101", "00000000000000000000000000000000");
-        registerFile.put("10110", "00000000000000000000000000000000");
-        registerFile.put("10111", "00000000000000000000000000000000");
-        registerFile.put("11000", "00000000000000000000000000000000");
-        registerFile.put("11001", "00000000000000000000000000000000");
-        registerFile.put("11101", "00000000000000000000000000000000");
-        registerFile.put("11111", "00000000000000000000000000000000");
+        registerFile.put("00000", "00000000000000000000000000000000");  // $zero
+        registerFile.put("00010", "00000000000000000000000000000000");	// $v0
+        registerFile.put("00011", "00000000000000000000000000000000");	// $v1
+        registerFile.put("00100", "00000000000000000000000000000000");	// $a0
+        registerFile.put("00101", "00000000000000000000000000000000");	// $a1
+        registerFile.put("00110", "00000000000000000000000000000000");	// $a2
+        registerFile.put("00111", "00000000000000000000000000000000");	// $a3
+        registerFile.put("01000", "00000000000000000000000000000000");	// $t0
+        registerFile.put("01001", "00000000000000000000000000000000");	// $t1
+        registerFile.put("01010", "00000000000000000000000000000000");	// $t2
+        registerFile.put("01011", "00000000000000000000000000000000");	// $t3
+        registerFile.put("01100", "00000000000000000000000000000000");	// $t4
+        registerFile.put("01101", "00000000000000000000000000000000");	// $t5
+        registerFile.put("01110", "00000000000000000000000000000000");	// $t6
+        registerFile.put("01111", "00000000000000000000000000000000");	// $t7
+        registerFile.put("10000", "00000000000000000000000000000000");	// $s0
+        registerFile.put("10001", "00000000000000000000000000000001");	// $s1
+        registerFile.put("10010", "00000000000000000000000000000000");	// $s2
+        registerFile.put("10011", "00000000000000000000000000000000");	// $s3
+        registerFile.put("10100", "00000000000000000000000000000100");	// $s4
+        registerFile.put("10101", "00000000000000000000000000000000");	// $s5
+        registerFile.put("10110", "00000000000000000000000000000000");	// $s6
+        registerFile.put("10111", "00000000000000000000000000000000");	// $s7
+        registerFile.put("11000", "00000000000000000000000000000000");	// $t8
+        registerFile.put("11001", "00000000000000000000000000000000");	// $t9
+        registerFile.put("11101", "00000000000000000000000000000000");	// $sp
+        registerFile.put("11110", "00000000000000000000000000000000");	// $fp
+        registerFile.put("11111", "00000000000000000000000000000000");	// $ra
+        
+    }
+    
+    public void statusPrinter(HashMap<String, String> a){
         
     }
     ////////////////////getters for register file and memory///////////////////////
@@ -64,26 +69,21 @@ public class Simulator {
         // memory
         String address;// to save the address part of the instruction
         if (binary.startsWith("000100")) { // check if beq
-            address = binary.substring(16); // get the address part of the
-            // instruction
+            address = binary.substring(16); // get the address part of the instruction
             tempPc = Integer.parseInt(address, 2);// get the decimal value of
             // the address and store it
             // in tempPc
         } else {
             if (binary.startsWith("000101")) { // check if bne
-                address = binary.substring(16); // get the address part of the
-                // instruction
+                address = binary.substring(16); // get the address part of the instruction
                 tempPc = Integer.parseInt(address, 2);// get the decimal value
-                // of the address and
-                // store it in tempPc
+                // of the address and store it in tempPc
             } else {
                 if (binary.startsWith("000010")) { // check if j
                     address = binary.substring(6); // get the address part of
                     // the instruction
                     tempPc = Integer.parseInt(address, 2);// get the decimal
-                    // value of the
-                    // address and store
-                    // it in tempPc
+                    // value of the address and store it in tempPc
                 } else {
                     if (binary.startsWith("000011")) { // check if jal
                         address = binary.substring(6); // get the address part
@@ -116,7 +116,12 @@ public class Simulator {
                 }
             }
         }
-        //System.out.println(binary);
+        System.out.println("==========================================================================");
+        System.out.println("Cycle Number = " + cycleNo);
+        System.out.println("Contents of IF/ID register:");
+        System.out.println("PC = " + pc);
+        System.out.println("instruction = " + binary);
+        System.out.println();
         this.pc = tempPc;
         decoder(binary); // return the instruction
         fetch();
@@ -156,8 +161,11 @@ public class Simulator {
             rs = registerFile.get(rs);
             rt = registerFile.get(rt);
             out.put("rs", rs);
+            out.put("rsDec",binaryToDecimalUnsigned(rs) +"");
             out.put("rd", binary.substring(16, 21));
+            out.put("rdDec",binaryToDecimalUnsigned(binary.substring(16, 21)) +"");
             out.put("rt", rt);
+            out.put("rtDec",binaryToDecimalUnsigned(rt) +"");
             out.put("shamt", binary.substring(21, 26));
             out.put("funct", binary.substring(26));
         }
@@ -176,8 +184,12 @@ public class Simulator {
             rs = binary.substring(6, 11);
             rs = registerFile.get(rs);
             out.put("rs", rs);
+            out.put("rsDec",binaryToDecimalUnsigned(rs) +"");
             out.put("rt", binary.substring(11, 16));
+            out.put("rtDec",binaryToDecimalUnsigned(binary.substring(11, 16)) +"");
             out.put("offset", binary.substring(16));
+            out.put("offsetDec", binaryToDecimalUnsigned(binary.substring(16))+"");
+            
             if (binary.startsWith("001000")) {
                 // if it's a addi ,set control signals.
                 out.put("RegDst", "0");
@@ -232,6 +244,9 @@ public class Simulator {
                 out.put("ALUOp", "00");
             }
         }
+        System.out.println("Contents of ID/EX  register:");
+        System.out.println(out.toString());
+        System.out.println();
         Execute(out);
         
     }
@@ -242,7 +257,6 @@ public class Simulator {
     // if this is a lw or lb instruction.
     
     public void Execute(HashMap<String, String> in) {
-        System.out.println("ana hena");
         HashMap<String, String> ExMem = new HashMap<String, String>();
         String out = "";
         ExMem.put("MemtoReg", (String) in.get("MemtoReg"));
@@ -283,12 +297,11 @@ public class Simulator {
         // with
         // the name = "destinationRegister".
         if (controlSignals.equals("100100010")) {
-            System.out.println("3erf eno r-format");
             ALUfunc = getFunction((String) in.get("funct"));
             out = operation(ALUfunc, (String) in.get("rs"),
                             (String) in.get("rt"), (String) in.get("shamt"));
-            ExMem.put("result", out);
             ExMem.put("destinationRegister", (String) in.get("rd"));
+            ExMem.put("destinationRegisterValue", binaryToDecimalUnsigned((String) in.get("rd"))+"");
             
         } else {
             // This means that this a load instruction.
@@ -307,20 +320,15 @@ public class Simulator {
                                 (String) in.get("offset"));
                 // adds offset to rs to get address to be loaded
                 if (op.equals("100000")) { // instruction
-                    System.out.println("3erf lb");
                     ExMem.put("lb", "1");
                     
                 } else {
                     if (op.equals("100100")) {
-                        System.out.println("3erf lbu");
                         ExMem.put("lbu", "1");
                         
-                    } else {
-                        System.out.println("3mlha lw");
-                        
                     }
-                    
                     ExMem.put("destinationRegister", (String) in.get("rt"));
+                    ExMem.put("destinationRegisterValue", binaryToDecimalUnsigned((String) in.get("rt")) + "");
                 }
             } else {
                 // This is for save instructions, the address is calculated by adding
@@ -335,11 +343,11 @@ public class Simulator {
                     out = binaryAdd((String) in.get("rs"),
                                     (String) in.get("offset"));
                     ExMem.put("writeData", (String) in.get("rt"));
+                    ExMem.put("writeDataValue", binaryToDecimalUnsigned((String) in.get("rt")) + "");
                     
                 } else {
                     if(controlSignals.equals("011100000")){
                         //lui instruction
-                        System.out.println("3erf lui");
                         ExMem.put("lui", "1");
                         out = (String) in.get("offset");
                     }
@@ -348,22 +356,20 @@ public class Simulator {
                         // added to the content of rs and the result should
                         // be put in the address inside the rt register.
                         
-                        System.out.println("el mfrood keda addi");
-                        System.out.println("opcode :"+in.get("opCode"));
                         String immediate = (String)in.get("offset");
-                        System.out.println("immediate :"+immediate);
-                        System.out.println("rs :"+in.get("rs"));
                         out = binaryAdd((String)in.get("rs"), immediate);
-                        System.out.println("output:" +out);
                         ExMem.put("destinationRegister", (String) in.get("rt"));
-                        ExMem.put("result", out);
+                        ExMem.put("destinationRegisterValue", binaryToDecimalUnsigned((String) in.get("rt")) + "");
                     }
                 }
             }
             
         }
         ExMem.put("result", out);
+        ExMem.put("resultValue", binaryToDecimal(out)+"");
+        System.out.println("Contents EX/MEM register: ");
         System.out.println(ExMem.toString());
+        System.out.println();
         memor(ExMem);
     }
     ///////////////////////////helpers for execute/////////////////////////////////////
@@ -707,19 +713,7 @@ public class Simulator {
     ///////////////////////////memory/////////////////////////////////////////////
     public void memor(HashMap<String, String> binary) {
         
-        System.out.println("ana hena");
-        //        ExMem.put("MemRead", (String) in.get("MemRead"));
-        //        ExMem.put("MemWrite", (String) in.get("MemWrite"));
-        //  	  ExMem.put("MemtoReg", (String) in.get("MemtoReg"));
-        //    	  ExMem.put("RegWrite", (String) in.get("RegWrite"));
-        //        ExMem.put("lb", "0");
-        //        ExMem.put("lbu", "0");
-        //        ExMem.put("lui", "0");
-        //        ExMem.put("sb", "0");
-        //    	  ExMem.put("result", out);
-        //        ExMem.put("destinationRegister", (String) in.get("rd"));
-        //        ExMem.put("writeData", (String) in.get("rt"));
-        
+        System.out.println();
         HashMap<String, String> toWrite = new HashMap<String, String>();
         String data;
         int address;
@@ -759,20 +753,23 @@ public class Simulator {
         } else { //ALU instruction
             data = "00000000000000000000000000000000";
             toWrite.put("result", binary.get("result"));
+            toWrite.put("resultValue", binaryToDecimal(binary.get("result")) + "");
             toWrite.put("MemtoReg", binary.get("MemtoReg"));
             toWrite.put("RegWrite", binary.get("RegWrite"));
             toWrite.put("destinationRegister", binary.get("destinationRegister"));
+            toWrite.put("destinationRegister #", binaryToDecimalUnsigned(binary.get("destinationRegister")) + "");
             toWrite.put("data", data);
             toWrite.put("lui",binary.get("lui"));
             // writeBack
         }
+        System.out.println("Contents of MEM/WB register:");
+        System.out.println(toWrite.toString());
         WriteBack(toWrite);
     }
     
     ///////////////////////////write back////////////////////////////////////////////
     public void WriteBack(HashMap<String, String> binary) {
         
-        System.out.println("ana hena");
         if (binary.get("MemtoReg").equals("0")){
             // this if condition to check whether to add from memory or register, and in this case ALU
             
@@ -790,113 +787,16 @@ public class Simulator {
             }
         }
         else{
-            // this case we add the value from the Memory to the register
+            // this case we add the value from the Memory to the register 
             this.registerFile.put(binary.get("destinationRegister"),binary.get("data"));
         }
         
+        System.out.println("==========================================================================");
+        
+        
+        
     }
     
-    ///////////////////////////main//////////////////////////////////////////////
-    public static void main(String[] args) {
-        //Simulator sim = new Simulator();
-        
-        // Test case 1
-        // adding 50 and -50,
-        // instruction example
-        /*
-         * String binary = "00000010000000000100000000100000"; // correct
-         * divison of instruction
-         *
-         * String opcode = binary.substring(0, 6); String rs =
-         * binary.substring(6, 11); String rt = binary.substring(11, 16); String
-         * rd = binary.substring(16, 21); String shmat = binary.substring(21,
-         * 26); String func = binary.substring(26, 32);
-         * System.out.println(opcode + " | " + rs + " | " + rt + " | " + rd +
-         * " | " + shmat + " | " + func); sim.registerFile.put("10000",
-         * "00000000000000000000000000110010"); sim.registerFile.put("00000",
-         * "11111111111111111111111111001110"); decoder(binary);
-         *
-         * // Test case 2 subtraction instruction
-         *
-         * String binary = "00000010000000000100000000100010"; // correct
-         * divison of instruction String opcode = binary.substring(0, 6); String
-         * rs = binary.substring(6, 11); String rt = binary.substring(11, 16);
-         * String rd = binary.substring(16, 21); String shmat =
-         * binary.substring(21, 26); String func = binary.substring(26, 32);
-         * System.out.println(opcode + " | " + rs + " | " + rt + " | " + rd +
-         * " | " + shmat + " | " + func); sim.registerFile.put("10000",
-         * "00000000000000000000000000110010"); sim.registerFile.put("00000",
-         * "11111111111111111111111111001110"); decoder(binary);
-         *
-         * System.out.println(binaryToDecimal("00000000000000000000000001100100")
-         * );
-         *
-         *
-         *
-         * String binary = "00100010000010010000000000001001"; // correct
-         * divison of instruction String opcode = binary.substring(0, 6); String
-         * rs = binary.substring(6, 11); String rt = binary.substring(11, 16);
-         * String offset = binary.substring(16); System.out.println(opcode +
-         * " | " + rs + " | " + rt + " | " + offset);
-         * sim.registerFile.put("10000", "00000000000000000000000000110010");
-         * sim.registerFile.put("00000", "00000000000000000000000000000000");
-         * decoder(binary);
-         * //System.out.println(binaryToDecimal("00000000000000000000000001100100"
-         * ));
-         */
-        
-        
-        // testing lw $t2, 0($t0)
-        /*
-         String bin = "10001101000010100000000000000001";
-         sim.registerFile.put("01000", "00000000000000000000000001100100");
-         decoder(bin);
-         */
-        
-        // testing lw $t2, 0($t0)
-        /*
-         String bin = "10001101000010100000000000000001";
-         sim.registerFile.put("01000", "00000000000000000000000001100100");
-         decoder(bin);
-         */
-        /*
-         //testing sw and sb
-         String binary = "10100001001010100000000000000001";
-         sim.registerFile.put("01010", "oh yeah");
-         sim.registerFile.put("01001", "00000000000000000000000000110010");
-         decoder(binary);
-         */
-        //testing sll and srl
-        /*
-         String binary = "00000000000010010100100100000000";
-         sim.registerFile.put("01001", "00000000000000000000000000000001");
-         decoder(binary);
-         */
-        //100100
-        // testing and + nor
-        /*
-         String binary = "00000010000000000100000000100111";
-         sim.registerFile.put("10000", "00000010000000000100000000100100");
-         sim.registerFile.put("00000", "00000000000000000000000000000000");
-         decoder(binary);
-         */
-        
-        //testing slt
-        /*
-         String binary = "00000001001100010101100000101010";
-         sim.registerFile.put("01001","00000010000000000100000000100100");
-         sim.registerFile.put("10001","00011100000000000000000000000010");
-         decoder(binary);
-         */
-        
-        // testing sltu
-        /*
-         String binary = "00000001001100010101100000101001";
-         sim.registerFile.put("01001","00000010000000000100000000100100");
-         sim.registerFile.put("10001","11011100000000000000000000000010");
-         decoder(binary);
-         */
-        
-    }
+    
     
 }
