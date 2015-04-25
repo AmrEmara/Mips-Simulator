@@ -1,6 +1,18 @@
 .data
-0xFF,{700,200,300,400}
+0xFF,{70000,200,300,400}
 0xA,12345
 .text
 0xAA
-addi $s1,$0,4
+lw $t3,255($t0)
+lw $t1,259($t0)
+sub $t4,$t1,$t0
+and $t5,$t2,$t3
+sw $t1,255($t0)
+add $t1,$t3,$t1
+nor $t6,$t1,$t3
+lw $t5,255($t0)
+sll $t0,$t5,2
+addi $t0,$t0,4
+sltu $t1,$t7,$t0
+lbu $t1,255($t9)
+addi $t2,$t2,4

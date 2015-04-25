@@ -72,7 +72,7 @@ public class Simulator {
         if (binary.startsWith("000100")) { // check if beq
             address = binary.substring(16); // get the address part of the
             // instruction
-            tempPc = tempPc+(short)Integer.parseInt(address, 2);// get the decimal value of
+            tempPc = tempPc+Integer.parseInt(address, 2);// get the decimal value of
             address = binary.substring(16); // get the address part of the instruction
             tempPc = Integer.parseInt(address, 2);// get the decimal value of
             // the address and store it
@@ -82,7 +82,7 @@ public class Simulator {
             if (binary.startsWith("000101")) { // check if bne
                 address = binary.substring(16); // get the address part of the
                 // instruction
-                tempPc = tempPc+(short)Integer.parseInt(address, 2);// get the decimal value
+                tempPc = tempPc+Integer.parseInt(address, 2);// get the decimal value
                 // of the address and
                 // store it in tempPc
                 f=true;
@@ -746,10 +746,20 @@ public class Simulator {
                 if (s.length()<32){
                     data = decimalToBinary(Integer.parseInt(s));
                 }
-                data = "000000000000000000000000"+data.substring(24);
+                String lb = data.substring(24);
+                if(lb.charAt(0) == '1'){
+                    data = "111111111111111111111111"+data.substring(24);
+                }
+                else {
+                    data = "000000000000000000000000"+data.substring(24);
+                }
             }
             if(binary.get("lbu").equals("1")){ //lbu instruction
-                data = signExtendor(data.substring(24));
+                String s = data;
+                if (s.length()<32){
+                    data = decimalToBinary(Integer.parseInt(s));
+                }
+                data = "000000000000000000000000"+data.substring(24);
             }
             
             toWrite.put("result", binary.get("result"));
@@ -832,9 +842,11 @@ public class Simulator {
             fetch();
     }
     
-    public void isSinglePath(){
+    public void isSinglePath(boolean x){
         // Main method calls isSinglePath and enters a boolean that decides if its a single path or not.
-        single_path=true;
-       
+        if(x)
+            single_path=true;
+        else
+            single_path=false;
     }
 }
