@@ -61,7 +61,7 @@ public class Simulator {
     /////////////////////////////fetch/////////////////////////////////////////////
     public void fetch() {
         boolean f=false;
-    	if(this.pc>endAddress){
+        if(this.pc>endAddress){
             return;
         }
         int tempPc = this.pc;
@@ -142,7 +142,7 @@ public class Simulator {
         this.pc = tempPc;
         this.cycleNo++;
         if(!f)
-        decoder(binary); // return the instruction
+            decoder(binary); // return the instruction
         if (!single_path)
             fetch();
         
@@ -348,9 +348,9 @@ public class Simulator {
                         ExMem.put("lbu", "1");
                         
                     }
-                    ExMem.put("destinationRegister", (String) in.get("rt"));
-                    ExMem.put("destinationRegisterValue", binaryToDecimalUnsigned((String) in.get("rt")) + "");
                 }
+                ExMem.put("destinationRegister", (String) in.get("rt"));
+                ExMem.put("destinationRegisterValue", binaryToDecimalUnsigned((String) in.get("rt")) + "");
             } else {
                 // This is for save instructions, the address is calculated by adding
                 // the contents of the rs and offset then placed in register with tag
@@ -476,8 +476,8 @@ public class Simulator {
         System.out.println("the value of rs is: " + a );
         System.out.println("the value of rt is: " + b);
         if (a < b)
-            return "1";
-        return "0";
+            return "00000000000000000000000000000001";
+        return "00000000000000000000000000000000";
     }
     
     public static String binarySetLessThanUnsigned(String arg1, String arg2){
@@ -486,8 +486,8 @@ public class Simulator {
         System.out.println("the value of a is: " + a);
         System.out.println("the value of b is: " + b);
         if(a < b)
-            return "1";
-        return "0";
+            return "00000000000000000000000000000001";
+        return "00000000000000000000000000000000";
     }
     
     public static String binaryOr(String a, String b) {
@@ -742,6 +742,10 @@ public class Simulator {
             address = Integer.parseInt(binary.get("result"), 2);
             data = this.memory.get(address);
             if(binary.get("lb").equals("1")){ //lb instruction
+                String s = data;
+                if (s.length()<32){
+                    data = decimalToBinary(Integer.parseInt(s));
+                }
                 data = "000000000000000000000000"+data.substring(24);
             }
             if(binary.get("lbu").equals("1")){ //lbu instruction
@@ -754,6 +758,7 @@ public class Simulator {
             toWrite.put("destinationRegister", binary.get("destinationRegister"));
             toWrite.put("data", data);
             toWrite.put("lui",binary.get("lui"));
+            toWrite.put("lb",binary.get("lb"));
             // writeBack
         } else if (binary.get("MemWrite").equals("1")) { //store instruction
             
@@ -811,8 +816,14 @@ public class Simulator {
         }
         else{
             if(!binary.get("MemtoReg").equals("X")){
-                // this case we add the value from the Memory to the register
-                this.registerFile.put(binary.get("destinationRegister"),decimalToBinary(Integer.parseInt(binary.get("data"))));
+                if(binary.get("lb").equals("1")){
+                    this.registerFile.put(binary.get("destinationRegister"),(binary.get("data")));
+                }
+                else {
+                    // this case we add the value from the Memory to the register
+                    this.registerFile.put(binary.get("destinationRegister"),decimalToBinary(Integer.parseInt(binary.get("data"))));
+                }
+                
             }
         }
         
@@ -824,8 +835,8 @@ public class Simulator {
     public void isSinglePath(boolean x){
         // Main method calls isSinglePath and enters a boolean that decides if its a single path or not.
         if(x)
-        single_path=true;
+            single_path=true;
         else
-        single_path=false;
+            single_path=false;
     }
 }
