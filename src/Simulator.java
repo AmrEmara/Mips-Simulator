@@ -7,7 +7,7 @@ public class Simulator {
     HashMap<Integer, String> memory;
     int pc, endAddress;
     int cycleNo = 0;
-    
+    boolean single_path =false;
     public Simulator(HashMap<Integer, String> inputMemory , int pc, int endAddress) {
         // the key for the registerFile is the register number in binary
         registerFile = new HashMap<String, String>();
@@ -124,6 +124,7 @@ public class Simulator {
         System.out.println();
         this.pc = tempPc;
         decoder(binary); // return the instruction
+        if (!single_path)
         fetch();
     }
     /////////////////////////////decode/////////////////////////////////////////////
@@ -792,11 +793,7 @@ public class Simulator {
         }
         
         System.out.println("==========================================================================");
-        
-        
-        
+        if (single_path)
+        fetch();
     }
-    
-    
-    
 }
