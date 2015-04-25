@@ -371,6 +371,8 @@ public class Simulator {
                         //lui instruction
                         ExMem.put("lui", "1");
                         out = (String) in.get("offset");
+                        ExMem.put("destinationRegister", (String) in.get("rt"));
+                        ExMem.put("destinationRegisterValue", binaryToDecimalUnsigned((String) in.get("rt")) + "");
                     }
                     else{
                         // This part is for addi instructions. The offset is
@@ -796,17 +798,36 @@ public class Simulator {
             toWrite.put("data", registerFile.get(data));
             toWrite.put("lui",binary.get("lui"));
             
-        } else { //ALU instruction
-            data = "00000000000000000000000000000000";
-            toWrite.put("result", binary.get("result"));
-            toWrite.put("resultValue", binaryToDecimal(binary.get("result")) + "");
-            toWrite.put("MemtoReg", binary.get("MemtoReg"));
-            toWrite.put("RegWrite", binary.get("RegWrite"));
-            toWrite.put("destinationRegister", binary.get("destinationRegister"));
-            toWrite.put("destinationRegister #", binaryToDecimalUnsigned(binary.get("destinationRegister")) + "");
-            toWrite.put("data", data);
-            toWrite.put("lui",binary.get("lui"));
-            // writeBack
+        } else {
+            
+            if(binary.get("lui").equals("1")){
+                
+                toWrite.put("result", binary.get("result"));
+                toWrite.put("MemtoReg", binary.get("MemtoReg"));
+                toWrite.put("RegWrite", binary.get("RegWrite"));
+                toWrite.put("destinationRegister", binary.get("destinationRegister"));
+                toWrite.put("data", binary.get("data"));
+                toWrite.put("lui",binary.get("lui"));
+                toWrite.put("lb",binary.get("lb"));
+                toWrite.put("destinationRegister", binary.get("destinationRegister"));
+                //toWrite.put("destinationRegister #", binaryToDecimalUnsigned(binary.get("destinationRegister")) + "");
+            }
+            else{
+                
+                
+                //ALU instruction
+                data = "00000000000000000000000000000000";
+                toWrite.put("result", binary.get("result"));
+                toWrite.put("resultValue", binaryToDecimal(binary.get("result")) + "");
+                toWrite.put("MemtoReg", binary.get("MemtoReg"));
+                toWrite.put("RegWrite", binary.get("RegWrite"));
+                toWrite.put("destinationRegister", binary.get("destinationRegister"));
+                toWrite.put("destinationRegister #", binaryToDecimalUnsigned(binary.get("destinationRegister")) + "");
+                toWrite.put("data", data);
+                toWrite.put("lui",binary.get("lui"));
+                
+                // writeBack
+            }
         }
         System.out.println("Contents of MEM/WB register:");
         System.out.println(toWrite.toString());
@@ -838,8 +859,15 @@ public class Simulator {
                     this.registerFile.put(binary.get("destinationRegister"),(binary.get("data")));
                 }
                 else {
+                    if(binary.get("lui").equals("1")){
+                        String s = binary.get("resut") + "0000000000000000";
+                        this.registerFile.put(binary.get("destinationRegister"),s);
+                    }
+                    else {
+                        this.registerFile.put(binary.get("destinationRegister"),decimalToBinary(Integer.parseInt(binary.get("data"))));
+                    }
                     // this case we add the value from the Memory to the register
-                    this.registerFile.put(binary.get("destinationRegister"),decimalToBinary(Integer.parseInt(binary.get("data"))));
+                    
                 }
                 
             }
