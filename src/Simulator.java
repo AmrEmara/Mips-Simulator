@@ -777,7 +777,15 @@ public class Simulator {
             toWrite.put("addressForStore",address +"");
             
             if(binary.get("sb").equals("1")){ //sb instruction
-                data = "000000000000000000000000"+data.substring(24);
+                data = registerFile.get((binary.get("writeData")));
+                String s = data.substring(24);
+                if(s.charAt(0) == '0'){
+                    data = "000000000000000000000000"+data.substring(24);
+                }
+                else {
+                    data = "111111111111111111111111"+data.substring(24);
+                }
+                
             }
             this.memory.put(address, data);
             //in this case Values for MemtoReg and RegWrite will be X (don't cares)
