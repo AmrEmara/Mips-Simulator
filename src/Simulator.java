@@ -6,6 +6,7 @@ public class Simulator {
     static HashMap<String, String> registerFile;
     HashMap<Integer, String> memory;
     int pc, endAddress;
+    boolean single_path =false;
     
     public Simulator(HashMap<Integer, String> inputMemory , int pc, int endAddress) {
         // the key for the registerFile is the register number in binary
@@ -119,6 +120,7 @@ public class Simulator {
         //System.out.println(binary);
         this.pc = tempPc;
         decoder(binary); // return the instruction
+        if (!single_path)
         fetch();
     }
     /////////////////////////////decode/////////////////////////////////////////////
@@ -793,7 +795,8 @@ public class Simulator {
             // this case we add the value from the Memory to the register
             this.registerFile.put(binary.get("destinationRegister"),binary.get("data"));
         }
-        
+        if (single_path)
+        fetch();
     }
     
     ///////////////////////////main//////////////////////////////////////////////
