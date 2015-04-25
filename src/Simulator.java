@@ -72,7 +72,7 @@ public class Simulator {
         if (binary.startsWith("000100")) { // check if beq
             address = binary.substring(16); // get the address part of the
             // instruction
-            tempPc = tempPc+Integer.parseInt(address, 2);// get the decimal value of
+            tempPc = tempPc+(short)Integer.parseInt(address, 2);// get the decimal value of
             address = binary.substring(16); // get the address part of the instruction
             tempPc = Integer.parseInt(address, 2);// get the decimal value of
             // the address and store it
@@ -82,7 +82,7 @@ public class Simulator {
             if (binary.startsWith("000101")) { // check if bne
                 address = binary.substring(16); // get the address part of the
                 // instruction
-                tempPc = tempPc+Integer.parseInt(address, 2);// get the decimal value
+                tempPc = tempPc+(short)Integer.parseInt(address, 2);// get the decimal value
                 // of the address and
                 // store it in tempPc
                 f=true;
@@ -832,11 +832,9 @@ public class Simulator {
             fetch();
     }
     
-    public void isSinglePath(boolean x){
+    public void isSinglePath(){
         // Main method calls isSinglePath and enters a boolean that decides if its a single path or not.
-        if(x)
-            single_path=true;
-        else
-            single_path=false;
+        single_path=true;
+       
     }
 }
