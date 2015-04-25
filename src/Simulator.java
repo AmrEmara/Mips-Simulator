@@ -829,4 +829,12 @@ public class Simulator {
         if (single_path)
             fetch();
     }
+    
+    public void isSinglePath(boolean x){
+        // Main method calls isSinglePath and enters a boolean that decides if its a single path or not.
+        if(x)
+        single_path=true;
+        else
+        single_path=false;
+    }
 }
